@@ -499,6 +499,18 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
         &nbsp;
       </p>
     </div>
+<div class="sidebar-slot">
+      <p class="news-item">
+        <!-- PASTE NEWS CONTENT HERE -->
+        
+      </p>
+    </div>
+<div class="sidebar-slot">
+      <p class="news-item">
+        <!-- PASTE NEWS CONTENT HERE -->
+        Credit to TL BAGS.
+      </p>
+    </div>
 
     <!-- Add more <div class="sidebar-slot"> blocks as needed -->
 
@@ -529,7 +541,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
       <!-- PASTE AD SCRIPT 1 HERE -->
-      <span class="slot-placeholder">Ad Slot 1</span>
+      <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
+<div id="container-8f96b67638e5d64529051d047142d046"></div>
     </div>
 
     <!-- ── AD SLOT 2 ────────────────────────────────────────
@@ -537,7 +550,16 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
       <!-- PASTE AD SCRIPT 2 HERE -->
-      <span class="slot-placeholder">Ad Slot 2</span>
+      <script>
+  atOptions = {
+    'key' : '997049bce7904492c2a6d34a649fa46e',
+    'format' : 'iframe',
+    'height' : 200,
+    'width' : 200,
+    'params' : {}
+  };
+</script>
+<script src="https://glamourpicklessteward.com/997049bce7904492c2a6d34a649fa46e/invoke.js"></script>
     </div>
 
   </div>
