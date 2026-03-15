@@ -457,7 +457,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 }
 </style>
 </head>
-<body>
+<body onload="checkFullscreen()">
 
 <!-- ════════════════════════════════════════════════════════
      LEFT SIDEBAR — News / announcements column
@@ -881,6 +881,37 @@ const Particles = {
   },
 };
 
+//fullscreen alert thingy
+function checkFullscreen() {
+  // Only show if not already fullscreen and screen is smallish (e.g. Chromebook)
+  if (!document.fullscreenElement && window.innerWidth < 1400) {
+    const banner = document.createElement('div');
+    banner.id = 'fs-banner';
+    banner.style.cssText = `
+      position:fixed;top:0;left:0;right:0;z-index:9999;
+      background:rgba(0,212,255,0.12);border-bottom:1px solid rgba(0,212,255,0.35);
+      color:rgba(0,212,255,0.9);font-family:'Share Tech Mono',monospace;
+      font-size:0.7rem;letter-spacing:0.15em;text-align:center;
+      padding:10px 16px;backdrop-filter:blur(4px);
+      display:flex;align-items:center;justify-content:center;gap:16px;
+    `;
+    banner.innerHTML = `
+      <span>⚡ VOIDRIFT plays best in fullscreen</span>
+      <button onclick="document.documentElement.requestFullscreen();document.getElementById('fs-banner').remove();"
+        style="font-family:'Share Tech Mono',monospace;font-size:0.65rem;letter-spacing:0.15em;
+               background:transparent;border:1px solid rgba(0,212,255,0.5);color:rgba(0,212,255,0.9);
+               padding:4px 12px;cursor:pointer;text-transform:uppercase;">
+        GO FULLSCREEN
+      </button>
+      <button onclick="document.getElementById('fs-banner').remove();"
+        style="font-family:'Share Tech Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;
+               background:transparent;border:none;color:rgba(0,212,255,0.4);cursor:pointer;">
+        DISMISS
+      </button>
+    `;
+    document.body.appendChild(banner);
+  }
+}
 // ─── STARFIELD ───────────────────────────────────────────────────────────────
 (function(){
   const c=document.getElementById('stars-canvas'),ctx=c.getContext('2d');
