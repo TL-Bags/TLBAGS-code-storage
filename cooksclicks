@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRUMBLE — Cookie Clicker</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0c0a;
+  --surface:  #141310;
+  --surface2: #1c1a17;
+  --border:   rgba(255,220,130,0.08);
+  --border2:  rgba(255,220,130,0.16);
+  --gold:     #e8c46a;
+  --gold2:    #c9963a;
+  --gold-dim: rgba(232,196,106,0.12);
+  --text:     #f0e8d6;
+  --text2:    #9a8f7a;
+  --text3:    #5a5246;
+  --cream:    #fdf6e3;
+  --green:    #7ab88a;
+  --r:        10px;
+  --r2:       16px;
+  --ad-h:     72px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--text);overflow:hidden}
+
+/* LAYOUT */
+#app{display:grid;grid-template-columns:280px 1fr 300px;grid-template-rows:56px 1fr var(--ad-h);height:100vh;width:100vw}
+
+/* TOPBAR */
+#topbar{grid-column:1/-1;display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--border);gap:20px;background:var(--surface)}
+#logo{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--gold);letter-spacing:4px;text-transform:uppercase;flex-shrink:0;line-height:1}
+#logo small{color:var(--text3);font-weight:400;font-size:10px;letter-spacing:2px;display:block;margin-top:1px}
+#lvl-badge{display:flex;align-items:center;gap:10px;padding:5px 14px;border:1px solid var(--border2);border-radius:20px;background:var(--gold-dim);flex-shrink:0}
+.lvl-n{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);font-weight:500;letter-spacing:1px}
+.lvl-nm{font-size:12px;color:var(--text2);font-weight:300}
+#xp-wrap{display:flex;align-items:center;gap:10px;flex:1;max-width:300px}
+#xp-bg{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+#xp-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));width:0%;transition:width .5s ease;border-radius:2px}
+#xp-lbl{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0}
+#tb-right{margin-left:auto;display:flex;align-items:center;gap:24px}
+.tstat .val{font-family:'DM Mono',monospace;font-size:14px;color:var(--text)}
+.tstat .lbl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+
+/* LEFT PANEL */
+#left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+.phdr{padding:16px 18px 12px;border-bottom:1px solid var(--border);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);font-weight:500;flex-shrink:0}
+#upg-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px}
+#upg-list::-webkit-scrollbar{width:3px}
+#upg-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* UPGRADE CARDS — note: NO pointer-events:none anywhere */
+.uc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s,transform .1s;position:relative}
+.uc:hover{border-color:var(--border2);background:rgba(232,196,106,0.05);transform:translateX(2px)}
+.uc:active{transform:translateX(2px) scale(0.97)}
+.uc.poor{opacity:0.4}
+.uc.poor:hover{opacity:0.55}
+.uc.bought{opacity:0.55;cursor:default;border-color:rgba(122,184,138,0.18);background:rgba(122,184,138,0.04)}
+.uc.bought:hover{transform:none;background:rgba(122,184,138,0.04)}
+.uc.bought::after{content:'✓';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--green);font-size:13px}
+.ui{width:32px;height:32px;border-radius:8px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.un{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ud{font-size:11px;color:var(--text3);margin-top:1px}
+.ucost{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);flex-shrink:0}
+
+/* flash animation */
+@keyframes flashNo{0%,100%{border-color:var(--border2)}50%{border-color:#e07060;box-shadow:0 0 0 2px rgba(224,112,96,0.15)}}
+.flash{animation:flashNo 0.35s ease}
+
+/* CENTER */
+#center{display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#bg-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(180,110,30,0.06) 0%,transparent 65%);pointer-events:none}
+#gc-banner{position:absolute;top:12px;background:rgba(232,196,106,0.1);border:1px solid rgba(232,196,106,0.28);border-radius:20px;padding:5px 18px;font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;letter-spacing:1px;display:none;z-index:20}
+#ck-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:28px}
+#ring{position:absolute;width:195px;height:195px;border-radius:50%;border:1px solid rgba(232,196,106,0.1);animation:spin 22s linear infinite;pointer-events:none}
+#ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;border:1px dashed rgba(232,196,106,0.05)}
+@keyframes spin{to{transform:rotate(360deg)}}
+#ck-btn{width:160px;height:160px;border-radius:50%;border:none;cursor:pointer;background:none;padding:0;position:relative;outline:none;-webkit-tap-highlight-color:transparent;transition:transform .12s cubic-bezier(.34,1.56,.64,1)}
+#ck-btn:active{transform:scale(0.91)!important}
+#ck-btn:hover #ck-svg{filter:drop-shadow(0 14px 50px rgba(200,140,40,0.55))}
+#ck-svg{width:100%;height:100%;filter:drop-shadow(0 8px 28px rgba(170,100,20,0.3));transition:filter .2s}
+#ck-lbl{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+#counter{text-align:center}
+#big{font-family:'Cormorant Garamond',serif;font-size:44px;font-weight:600;color:var(--text);line-height:1;letter-spacing:-1px}
+#unit{font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--gold);font-style:italic;display:block;margin-top:3px}
+#cpsln{font-size:12px;color:var(--text3);margin-top:10px;font-family:'DM Mono',monospace}
+#cpsln span{color:var(--text2)}
+
+/* GOLDEN COOKIE */
+#gc{position:fixed;display:none;cursor:pointer;z-index:500;opacity:0;transition:opacity .5s}
+#gc svg{animation:gpulse 1.4s ease-in-out infinite alternate}
+@keyframes gpulse{from{filter:drop-shadow(0 0 8px rgba(255,200,50,0.45))}to{filter:drop-shadow(0 0 22px rgba(255,210,60,0.9))}}
+#gc-lbl{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--gold);white-space:nowrap;font-family:'DM Mono',monospace;background:var(--surface);padding:2px 7px;border-radius:4px;border:1px solid var(--border2);letter-spacing:1px}
+
+/* RIGHT PANEL */
+#right{border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--surface)}
+#bld-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px}
+#bld-list::-webkit-scrollbar{width:3px}
+#bld-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* BUILDING CARDS — NO pointer-events:none */
+.bc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:border-color .15s,background .15s,transform .1s}
+.bc:hover{border-color:var(--border2);background:rgba(232,196,106,0.05);transform:translateX(-2px)}
+.bc:active{transform:translateX(-2px) scale(0.97)}
+.bc.poor{opacity:0.4}
+.bc.poor:hover{opacity:0.58}
+.bc.can{border-color:rgba(232,196,106,0.2)}
+.bi{width:36px;height:36px;border-radius:9px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;position:relative}
+.bb{position:absolute;top:-5px;right:-5px;background:var(--gold2);color:#0d0c0a;font-size:9px;font-weight:500;font-family:'DM Mono',monospace;border-radius:5px;padding:1px 4px;line-height:1.5;min-width:16px;text-align:center}
+.bn{font-size:12px;font-weight:500;color:var(--text)}
+.bs{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+.bcps{color:var(--gold2)}
+.bcc{text-align:right;flex-shrink:0}
+.bcl{font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;display:block;margin-bottom:1px}
+.bcv{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold)}
+
+/* AD BAR */
+#ad-bar{grid-column:1/-1;border-top:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+#ad-inner{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+
+/* PARTICLES */
+.fl{position:fixed;pointer-events:none;z-index:9999;font-family:'DM Mono',monospace;font-size:14px;font-weight:500;color:var(--gold);animation:floatUp .85s ease-out forwards;transform:translateX(-50%)}
+@keyframes floatUp{0%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0;transform:translateX(-50%) translateY(-55px)}}
+.dp{position:fixed;pointer-events:none;z-index:9999;border-radius:50%;animation:dotFly var(--dur,.7s) ease-out forwards}
+@keyframes dotFly{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx,0),var(--ty,-60px)) scale(0)}}
+.cr{position:fixed;pointer-events:none;z-index:9999;animation:crFly var(--dur,.9s) ease-out forwards}
+@keyframes crFly{0%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1)}100%{opacity:0;transform:translate(var(--tx,0),var(--ty,-80px)) rotate(var(--rot,180deg)) scale(0.2)}}
+.burst{position:fixed;pointer-events:none;z-index:9999;font-size:18px;animation:burstFly var(--dur,1s) ease-out forwards}
+@keyframes burstFly{0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}100%{opacity:0;transform:translate(var(--tx,0),var(--ty,-120px)) scale(0.3) rotate(var(--rot,180deg))}}
+
+/* LEVEL UP */
+#lu{display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,9,7,0.9);align-items:center;justify-content:center}
+#lu.show{display:flex}
+#lu-box{background:var(--surface);border:1px solid rgba(232,196,106,0.22);border-radius:22px;padding:44px 52px;max-width:440px;width:90%;text-align:center}
+#lu-emoji{font-size:50px;margin-bottom:10px}
+#lu-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:600;color:var(--gold);letter-spacing:2px}
+#lu-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin:6px 0 18px}
+#lu-desc{font-size:15px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:28px}
+#lu-btn{background:var(--gold);color:var(--bg);border:none;border-radius:28px;padding:11px 34px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .15s,transform .1s}
+#lu-btn:hover{background:var(--cream)}
+#lu-btn:active{transform:scale(0.97)}
+
+/* ACHIEVEMENT TOAST */
+#ach{position:fixed;bottom:calc(var(--ad-h) + 16px);left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid rgba(232,196,106,0.18);border-radius:var(--r2);padding:13px 18px;display:flex;align-items:center;gap:13px;z-index:9998;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;min-width:270px;max-width:340px}
+#ach.show{transform:translateX(-50%) translateY(0);opacity:1}
+#ach-ico{width:38px;height:38px;background:var(--gold-dim);border:1px solid var(--border2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.at{font-size:13px;font-weight:500;color:var(--text)}
+.as{font-size:11px;color:var(--text3);margin-top:2px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div id="logo">Crumble<small>Cookie Co.</small></div>
+    <div id="lvl-badge">
+      <span class="lvl-n" id="t-lvl">LVL 1</span>
+      <span class="lvl-nm" id="t-name">Apprentice Baker</span>
+    </div>
+    <div id="xp-wrap">
+      <div id="xp-bg"><div id="xp-fill"></div></div>
+      <div id="xp-lbl"></div>
+    </div>
+    <div id="tb-right">
+      <div class="tstat"><div class="val" id="t-tot">0</div><div class="lbl">Total Baked</div></div>
+      <div class="tstat"><div class="val" id="t-cps">0/s</div><div class="lbl">Production</div></div>
+      <div class="tstat"><div class="val" id="t-clk">1</div><div class="lbl">Per Click</div></div>
+    </div>
+  </div>
+
+  <!-- LEFT: UPGRADES -->
+  <div id="left">
+    <div class="phdr">Upgrades</div>
+    <div id="upg-list"></div>
+  </div>
+
+  <!-- CENTER: COOKIE -->
+  <div id="center">
+    <div id="bg-glow"></div>
+    <div id="gc-banner">✦ Golden Frenzy — <span id="gc-sec">30</span>s</div>
+    <div id="ck-wrap">
+      <div id="ring"></div>
+      <button id="ck-btn" aria-label="Bake a cookie">
+        <svg id="ck-svg" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cg1" cx="38%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#d4924a"/><stop offset="50%" stop-color="#b8712a"/><stop offset="100%" stop-color="#7a3f10"/>
+            </radialGradient>
+            <radialGradient id="cg2" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="rgba(255,210,130,0.22)"/><stop offset="100%" stop-color="rgba(255,210,130,0)"/>
+            </radialGradient>
+            <radialGradient id="chg" cx="40%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="#3d1e08"/><stop offset="100%" stop-color="#1a0a02"/>
+            </radialGradient>
+          </defs>
+          <circle cx="80" cy="83" r="73" fill="#5c2a08" opacity="0.25"/>
+          <circle cx="80" cy="80" r="73" fill="url(#cg1)"/>
+          <circle cx="80" cy="80" r="73" fill="url(#cg2)"/>
+          <circle cx="80" cy="7" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="108" cy="11" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="129" cy="27" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="150" cy="53" r="3.5" fill="#c07030" opacity="0.5"/>
+          <circle cx="153" cy="80" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="149" cy="108" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="133" cy="131" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="109" cy="149" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="80" cy="153" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="52" cy="149" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="28" cy="133" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="11" cy="109" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="7" cy="80" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="11" cy="52" r="3" fill="#c07030" opacity="0.5"/>
+          <circle cx="27" cy="28" r="4" fill="#c07030" opacity="0.55"/>
+          <circle cx="52" cy="12" r="3" fill="#c07030" opacity="0.5"/>
+          <path d="M65,40 Q72,56 68,72" stroke="#8b4515" stroke-width="1.5" fill="none" opacity="0.45"/>
+          <path d="M95,55 Q88,70 92,85" stroke="#8b4515" stroke-width="1.2" fill="none" opacity="0.38"/>
+          <path d="M50,90 Q62,98 58,113" stroke="#8b4515" stroke-width="1.2" fill="none" opacity="0.32"/>
+          <path d="M100,95 Q110,108 106,121" stroke="#8b4515" stroke-width="1" fill="none" opacity="0.3"/>
+          <ellipse cx="58" cy="48" rx="9" ry="8" fill="url(#chg)" transform="rotate(-15,58,48)"/>
+          <ellipse cx="100" cy="38" rx="8" ry="7" fill="url(#chg)" transform="rotate(10,100,38)"/>
+          <ellipse cx="42" cy="72" rx="7" ry="8" fill="url(#chg)" transform="rotate(-8,42,72)"/>
+          <ellipse cx="115" cy="70" rx="9" ry="7" fill="url(#chg)" transform="rotate(20,115,70)"/>
+          <ellipse cx="72" cy="90" rx="8" ry="7" fill="url(#chg)" transform="rotate(5,72,90)"/>
+          <ellipse cx="105" cy="105" rx="9" ry="8" fill="url(#chg)" transform="rotate(-12,105,105)"/>
+          <ellipse cx="48" cy="108" rx="7" ry="8" fill="url(#chg)" transform="rotate(15,48,108)"/>
+          <ellipse cx="88" cy="128" rx="8" ry="7" fill="url(#chg)" transform="rotate(-5,88,128)"/>
+          <ellipse cx="122" cy="125" rx="7" ry="6" fill="url(#chg)" transform="rotate(-10,122,125)"/>
+          <ellipse cx="30" cy="50" rx="6" ry="5" fill="url(#chg)" transform="rotate(12,30,50)"/>
+          <ellipse cx="56" cy="45" rx="3" ry="2" fill="rgba(255,255,255,0.16)" transform="rotate(-15,56,45)"/>
+          <ellipse cx="98" cy="35" rx="2.5" ry="2" fill="rgba(255,255,255,0.13)" transform="rotate(10,98,35)"/>
+          <ellipse cx="70" cy="87" rx="3" ry="2" fill="rgba(255,255,255,0.13)" transform="rotate(5,70,87)"/>
+        </svg>
+        <span id="ck-lbl">click to bake</span>
+      </button>
+    </div>
+    <div id="counter">
+      <div id="big">0</div>
+      <span id="unit">cookies</span>
+      <div id="cpsln">producing <span id="cps-v">0</span> per second</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: BUILDINGS -->
+  <div id="right">
+    <div class="phdr">Bakery</div>
+    <div id="bld-list"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+       AD BAR — full-width bottom strip
+       ════════════════════════════════════════════════════════════ -->
+  <div id="ad-bar">
+    <div id="ad-inner">
+
+      <!-- ///////////////////////////////////////////////////////////
+           PLACE YOUR AD SCRIPT HERE
+           Replace the placeholder div below with your ad tag.
+           Recommended unit: Leaderboard 728×90 or fluid banner.
+
+           Example (Google AdSense):
+             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+             <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins>
+             <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+           /////////////////////////////////////////////////////////// -->
+
+      <!-- Placeholder: remove this div once your ad script is added above -->
+      <div style="width:728px;max-width:95%;height:50px;border:1px dashed rgba(255,220,130,0.1);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+  <script>
+  atOptions = {
+    'key' : '50a13ab64b1be08cbe337802d1ee7aa0',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://glamourpicklessteward.com/50a13ab64b1be08cbe337802d1ee7aa0/invoke.js"></script>
+  </div>
+
+    </div>
+  </div>
+  <!-- ════════════════════════════════════════════════════════════ -->
+
+</div><!-- /#app -->
+
+<!-- LEVEL UP OVERLAY -->
+<div id="lu">
+  <div id="lu-box">
+    <div id="lu-emoji">🏆</div>
+    <div id="lu-title">Level Up</div>
+    <div id="lu-sub">New Rank Unlocked</div>
+    <div id="lu-desc">You have proven yourself.</div>
+    <button id="lu-btn">Continue Baking</button>
+  </div>
+</div>
+
+<!-- ACHIEVEMENT TOAST -->
+<div id="ach">
+  <div id="ach-ico">🏅</div>
+  <div><div class="at" id="ach-t"></div><div class="as" id="ach-s"></div></div>
+</div>
+
+<!-- GOLDEN COOKIE (floats around screen) -->
+<div id="gc">
+  <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="gg" cx="40%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="#fff3a0"/><stop offset="50%" stop-color="#f0c830"/><stop offset="100%" stop-color="#c8900a"/>
+      </radialGradient>
+    </defs>
+    <circle cx="32" cy="32" r="30" fill="url(#gg)"/>
+    <circle cx="32" cy="32" r="30" stroke="#e8c830" stroke-width="1.5" fill="none"/>
+    <ellipse cx="22" cy="22" rx="5" ry="4" fill="#c07010" opacity="0.7" transform="rotate(-15,22,22)"/>
+    <ellipse cx="40" cy="18" rx="4" ry="3.5" fill="#c07010" opacity="0.65" transform="rotate(10,40,18)"/>
+    <ellipse cx="46" cy="36" rx="4.5" ry="4" fill="#c07010" opacity="0.7" transform="rotate(20,46,36)"/>
+    <ellipse cx="30" cy="42" rx="5" ry="4" fill="#c07010" opacity="0.65" transform="rotate(-5,30,42)"/>
+    <ellipse cx="16" cy="38" rx="4" ry="3.5" fill="#c07010" opacity="0.6" transform="rotate(15,16,38)"/>
+    <text x="32" y="38" text-anchor="middle" font-size="18" fill="rgba(255,255,255,0.88)">✦</text>
+  </svg>
+  <div id="gc-lbl">Golden Cookie!</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════
+const LEVELS = [
+  {level:1,name:"Apprentice Baker",  threshold:0,    emoji:"🍞",bonus:""},
+  {level:2,name:"Cookie Journeyman", threshold:1000, emoji:"🥐",bonus:"Click power ×2"},
+  {level:3,name:"Pastry Artisan",    threshold:1e5,  emoji:"🎂",bonus:"All production ×1.5"},
+  {level:4,name:"Cookie Baron",      threshold:1e7,  emoji:"👑",bonus:"Click power ×3"},
+  {level:5,name:"Grand Chocolatier", threshold:1e10, emoji:"🏆",bonus:"All production ×2"},
+  {level:6,name:"Cookie Deity",      threshold:1e14, emoji:"✦", bonus:"Click power ×10"},
+  {level:7,name:"The Omnibaker",     threshold:1e20, emoji:"🌌",bonus:"Everything ×5"},
+];
+
+const BUILDINGS = [
+  {id:"cursor",      name:"Cursor",       emoji:"🖱️", baseCost:15,      baseCps:0.1,    desc:"Autoclick",        unlockAt:0},
+  {id:"grandma",     name:"Grandma",      emoji:"👵", baseCost:100,     baseCps:0.5,    desc:"Bakes lovingly",   unlockAt:10},
+  {id:"farm",        name:"Cookie Farm",  emoji:"🌾", baseCost:1100,    baseCps:4,      desc:"Grows dough",      unlockAt:100},
+  {id:"mine",        name:"Sugar Mine",   emoji:"⛏️",  baseCost:12000,   baseCps:10,     desc:"Digs sweetness",   unlockAt:1000},
+  {id:"factory",     name:"Factory",      emoji:"🏭", baseCost:130000,  baseCps:40,     desc:"Mass production",  unlockAt:10000},
+  {id:"bank",        name:"Cookie Bank",  emoji:"🏦", baseCost:1.4e6,   baseCps:100,    desc:"Compound gains",   unlockAt:1e5},
+  {id:"temple",      name:"Temple",       emoji:"🛕", baseCost:2e7,     baseCps:400,    desc:"Divine baking",    unlockAt:1e6},
+  {id:"wizard",      name:"Wizard Tower", emoji:"🧙", baseCost:3.3e8,   baseCps:1666,   desc:"Conjure cookies",  unlockAt:1e8},
+  {id:"shipment",    name:"Starship",     emoji:"🚀", baseCost:5.1e9,   baseCps:7778,   desc:"Planet imports",   unlockAt:1e10},
+  {id:"alchemy",     name:"Alchemy Lab",  emoji:"⚗️",  baseCost:7.5e10,  baseCps:37800,  desc:"Gold to cookies",  unlockAt:1e12},
+  {id:"portal",      name:"Cookie Portal",emoji:"🌀", baseCost:1e12,    baseCps:200000, desc:"Multiverse dough", unlockAt:1e14},
+  {id:"timemachine", name:"Time Machine", emoji:"⏱️", baseCost:1.4e13,  baseCps:900000, desc:"Past production",  unlockAt:1e16},
+];
+
+const UPGRADES = [
+  {id:"u1", icon:"🔥",name:"Reinforced Oven",    cost:100,    desc:"Double click power",         apply:s=>{s.cm*=2},                             check:s=>s.tb>=50},
+  {id:"u2", icon:"🍫",name:"Chocolate Selection", cost:500,    desc:"Cursors produce 2× more",    apply:s=>{s.bm.cursor=(s.bm.cursor||1)*2},      check:s=>(s.b.cursor||0)>=1},
+  {id:"u3", icon:"📖",name:"Grandma's Secret",    cost:1000,   desc:"Grandmas produce 2× more",   apply:s=>{s.bm.grandma=(s.bm.grandma||1)*2},    check:s=>(s.b.grandma||0)>=1},
+  {id:"u4", icon:"⚙️", name:"Steel Rolling Pin",  cost:5000,   desc:"Click power ×3",             apply:s=>{s.cm*=3},                             check:s=>s.tb>=2500},
+  {id:"u5", icon:"🌱",name:"Bio-Fertilizer",      cost:10000,  desc:"Farms produce 2× more",      apply:s=>{s.bm.farm=(s.bm.farm||1)*2},          check:s=>(s.b.farm||0)>=1},
+  {id:"u6", icon:"💎",name:"Sugar Crystals",      cost:50000,  desc:"All buildings +50% output",  apply:s=>{s.gm*=1.5},                           check:s=>s.tb>=25000},
+  {id:"u7", icon:"📜",name:"Artisan Recipes",     cost:200000, desc:"All buildings +50% output",  apply:s=>{s.gm*=1.5},                           check:s=>s.lv>=2},
+  {id:"u8", icon:"✨",name:"Golden Ovens",        cost:5e5,    desc:"Click power ×5",             apply:s=>{s.cm*=5},                             check:s=>s.lv>=3},
+  {id:"u9", icon:"⛏️", name:"Industrial Mining",  cost:2e6,    desc:"Mines produce 3× more",      apply:s=>{s.bm.mine=(s.bm.mine||1)*3},          check:s=>(s.b.mine||0)>=5},
+  {id:"u10",icon:"⚛️", name:"Quantum Baking",     cost:5e7,    desc:"All buildings ×3 output",    apply:s=>{s.gm*=3},                             check:s=>s.lv>=4},
+  {id:"u11",icon:"🧠",name:"Neural Recipes",      cost:5e8,    desc:"Click power ×10",            apply:s=>{s.cm*=10},                            check:s=>s.lv>=4},
+  {id:"u12",icon:"🌌",name:"Singularity",         cost:1e10,   desc:"All buildings ×5 output",    apply:s=>{s.gm*=5},                             check:s=>s.lv>=5},
+  {id:"u13",icon:"👑",name:"Cookie Dominion",     cost:1e13,   desc:"Click power ×50",            apply:s=>{s.cm*=50},                            check:s=>s.lv>=6},
+  {id:"u14",icon:"♾️", name:"The Eternal Batch",  cost:1e15,   desc:"All buildings ×10 output",   apply:s=>{s.gm*=10},                            check:s=>s.lv>=6},
+];
+
+const ACHIEVEMENTS = [
+  {id:"a1", ico:"🍪",name:"First Crumb",        sub:"Bake your very first cookie",  check:s=>s.tb>=1},
+  {id:"a2", ico:"🔢",name:"Century Baker",       sub:"Bake 100 cookies",             check:s=>s.tb>=100},
+  {id:"a3", ico:"📦",name:"Cookie Stockpile",    sub:"Bake 10,000 cookies",          check:s=>s.tb>=10000},
+  {id:"a4", ico:"💰",name:"Cookie Millionaire",  sub:"Bake 1,000,000 cookies",       check:s=>s.tb>=1e6},
+  {id:"a5", ico:"🏗️",name:"First Hire",          sub:"Buy your first building",      check:s=>Object.values(s.b).some(v=>v>0)},
+  {id:"a6", ico:"👵",name:"Grandma's Approval",  sub:"Employ 10 grandmas",           check:s=>(s.b.grandma||0)>=10},
+  {id:"a7", ico:"🌟",name:"Golden Touch",        sub:"Catch a golden cookie",        check:s=>s.gc>=1},
+  {id:"a8", ico:"⬆️",name:"Rising Star",         sub:"Reach Level 2",                check:s=>s.lv>=2},
+  {id:"a9", ico:"🏆",name:"Seasoned Pro",        sub:"Reach Level 3",                check:s=>s.lv>=3},
+  {id:"a10",ico:"💎",name:"Cookie Billionaire",  sub:"Bake 1,000,000,000 cookies",   check:s=>s.tb>=1e9},
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE  (short keys to avoid any accidental minification clashes)
+// ═══════════════════════════════════════════════════════════
+const S = {
+  c:0,   // current cookies
+  tb:0,  // total baked
+  cps:0,
+  cm:1,  // click multiplier
+  gm:1,  // global CPS multiplier
+  bm:{}, // per-building multipliers
+  b:{},  // building counts
+  bought:new Set(),
+  ach:new Set(),
+  lv:1,
+  gc:0,  // golden cookies caught
+  gAct:false,
+  gMult:1,
+  gRem:0,
+};
+
+BUILDINGS.forEach(b=>{S.b[b.id]=0;S.bm[b.id]=1;});
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function N(n){
+  if(!isFinite(n)||n<0)return'0';
+  if(n<1000)return Math.floor(n).toLocaleString();
+  const W=['','thousand','million','billion','trillion','quadrillion','quintillion',
+    'sextillion','septillion','octillion','nonillion','decillion','undecillion','duodecillion'];
+  const t=Math.min(Math.floor(Math.log10(n)/3),W.length-1);
+  const v=n/Math.pow(1000,t);
+  return(v>=100?v.toFixed(1):v>=10?v.toFixed(2):v.toFixed(3)).replace(/\.?0+$/,'')+' '+W[t];
+}
+function Ns(n){
+  if(!isFinite(n)||n<0)return'0';
+  if(n<1000)return Math.floor(n).toString();
+  const S2=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Ud','Dd','Td'];
+  const t=Math.min(Math.floor(Math.log10(n)/3),S2.length-1);
+  const v=n/Math.pow(1000,t);
+  return(v<10?v.toFixed(2):v<100?v.toFixed(1):Math.floor(v))+S2[t];
+}
+function calcCps(){
+  let tot=0;
+  for(const b of BUILDINGS)tot+=S.b[b.id]*b.baseCps*(S.bm[b.id]||1);
+  return tot*S.gm;
+}
+function bCost(b){return Math.ceil(b.baseCost*Math.pow(1.15,S.b[b.id]));}
+function unlocked(b){return S.tb>=b.unlockAt||S.b[b.id]>0;}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER  — diff-keyed to avoid full DOM reconstruction every frame
+// ═══════════════════════════════════════════════════════════
+function render(){
+  const lvl=LEVELS[S.lv-1],nxt=LEVELS[S.lv];
+  document.getElementById('big').textContent=Ns(S.c);
+  document.getElementById('unit').textContent=S.c===1?'cookie':'cookies';
+  document.getElementById('cps-v').textContent=Ns(S.cps);
+  document.getElementById('t-tot').textContent=Ns(S.tb);
+  document.getElementById('t-cps').textContent=Ns(S.cps)+'/s';
+  document.getElementById('t-clk').textContent=Ns(Math.ceil(S.cm));
+  document.getElementById('t-lvl').textContent='LVL '+S.lv;
+  document.getElementById('t-name').textContent=lvl.name;
+  const pct=nxt?Math.min(100,(S.tb/nxt.threshold)*100):100;
+  document.getElementById('xp-fill').style.width=pct+'%';
+  document.getElementById('xp-lbl').textContent=nxt?Ns(S.tb)+' / '+Ns(nxt.threshold):'MAX';
+  renderUpg();
+  renderBld();
+}
+
+function renderUpg(){
+  const el=document.getElementById('upg-list');
+  const vis=UPGRADES.filter(u=>S.bought.has(u.id)||u.check(S));
+  if(!vis.length){
+    const k='empty';
+    if(el.dataset.k===k)return;
+    el.dataset.k=k;
+    el.innerHTML='<div style="padding:22px 16px;text-align:center;font-size:11px;color:var(--text3);line-height:1.7;">Keep baking to<br>unlock upgrades</div>';
+    return;
+  }
+  const k=vis.map(u=>u.id+(S.bought.has(u.id)?'b':S.c>=u.cost?'a':'p')).join(',');
+  if(el.dataset.k===k)return;
+  el.dataset.k=k;
+  el.innerHTML='';
+  vis.forEach(u=>{
+    const bought=S.bought.has(u.id);
+    const can=S.c>=u.cost;
+    const d=document.createElement('div');
+    d.className='uc'+(bought?' bought':can?'':' poor');
+    d.innerHTML=
+      `<div class="ui">${u.icon}</div>`+
+      `<div style="flex:1;min-width:0"><div class="un">${u.name}</div><div class="ud">${u.desc}</div></div>`+
+      (bought?'':`<div class="ucost">${Ns(u.cost)}</div>`);
+    if(!bought){
+      d.addEventListener('click',()=>{
+        if(S.bought.has(u.id))return;
+        if(S.c<u.cost){flash(d);return;}
+        S.c-=u.cost;
+        S.bought.add(u.id);
+        u.apply(S);
+        S.cps=calcCps();
+        burst(window.innerWidth/2,window.innerHeight*0.45,10);
+        render();
+      });
+    }
+    el.appendChild(d);
+  });
+}
+
+function renderBld(){
+  const el=document.getElementById('bld-list');
+  const vis=BUILDINGS.filter(unlocked);
+  if(!vis.length){
+    const k='empty';
+    if(el.dataset.k===k)return;
+    el.dataset.k=k;
+    el.innerHTML='<div style="padding:22px 16px;text-align:center;font-size:11px;color:var(--text3);line-height:1.7;">Bake a few cookies<br>to open your bakery</div>';
+    return;
+  }
+  const k=vis.map(b=>b.id+S.b[b.id]+(S.c>=bCost(b)?'a':'p')).join(',');
+  if(el.dataset.k===k)return;
+  el.dataset.k=k;
+  el.innerHTML='';
+  vis.forEach(b=>{
+    const cost=bCost(b);
+    const can=S.c>=cost;
+    const cnt=S.b[b.id];
+    const cpsT=cnt*b.baseCps*(S.bm[b.id]||1)*S.gm;
+    const d=document.createElement('div');
+    d.className='bc'+(can?' can':' poor');
+    d.innerHTML=
+      `<div class="bi">${b.emoji}${cnt>0?`<div class="bb">${cnt}</div>`:''}</div>`+
+      `<div style="flex:1;min-width:0">`+
+        `<div class="bn">${b.name}</div>`+
+        `<div class="bs">${b.desc}${cnt>0?` <span class="bcps">· ${Ns(cpsT)}/s</span>`:''}</div>`+
+      `</div>`+
+      `<div class="bcc"><span class="bcl">cost</span><span class="bcv">${Ns(cost)}</span></div>`;
+    // click handler always attached — no disabled state blocking it
+    d.addEventListener('click',()=>{
+      const c=bCost(b);
+      if(S.c<c){flash(d);return;}
+      S.c-=c;
+      S.b[b.id]++;
+      S.cps=calcCps();
+      render();
+    });
+    el.appendChild(d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// COOKIE CLICK
+// ═══════════════════════════════════════════════════════════
+document.getElementById('ck-btn').addEventListener('click',function(e){
+  const gain=Math.ceil(S.cm)*S.gMult;
+  S.c+=gain;S.tb+=gain;
+  // float label
+  const lbl=document.createElement('div');
+  lbl.className='fl';
+  lbl.textContent='+'+Ns(gain);
+  lbl.style.cssText=`left:${e.clientX}px;top:${e.clientY-8}px`;
+  document.body.appendChild(lbl);
+  setTimeout(()=>lbl.remove(),900);
+  // dot particles
+  const cols=['#e8c46a','#c9963a','#f0e8d6','#d4924a','rgba(255,255,255,0.8)'];
+  const n=6+Math.floor(Math.random()*6);
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    p.className='dp';
+    const sz=3+Math.random()*5;
+    const ang=(Math.PI*2*i/n)+(Math.random()-0.5)*0.7;
+    const dist=35+Math.random()*55;
+    const dur=(0.45+Math.random()*0.4).toFixed(2);
+    p.style.cssText=
+      `width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};`+
+      `left:${e.clientX}px;top:${e.clientY}px;`+
+      `--tx:${(Math.cos(ang)*dist).toFixed(1)}px;`+
+      `--ty:${(Math.sin(ang)*dist-28).toFixed(1)}px;`+
+      `--dur:${dur}s`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),dur*1000+50);
+  }
+  // crumb emojis
+  const crumbs=['🍪','✦','·','◦','∘'];
+  for(let i=0;i<3;i++){
+    const c=document.createElement('div');
+    c.className='cr';
+    const dur=(0.6+Math.random()*0.5).toFixed(2);
+    c.textContent=crumbs[Math.floor(Math.random()*crumbs.length)];
+    c.style.cssText=
+      `left:${e.clientX+(Math.random()-0.5)*50}px;top:${e.clientY}px;`+
+      `color:var(--gold);font-size:${12+Math.random()*8}px;`+
+      `--tx:${((Math.random()-0.5)*100).toFixed(1)}px;`+
+      `--ty:${-(40+Math.random()*70).toFixed(1)}px;`+
+      `--rot:${((Math.random()-0.5)*360).toFixed(0)}deg;`+
+      `--dur:${dur}s`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),dur*1000+100);
+  }
+  // squish
+  const svg=document.getElementById('ck-svg');
+  svg.style.transform=`scale(0.9) rotate(${((Math.random()-0.5)*7).toFixed(1)}deg)`;
+  setTimeout(()=>{svg.style.transform='';},110);
+  checkLvl();checkAch();render();
+});
+
+// ═══════════════════════════════════════════════════════════
+// LEVEL UP
+// ═══════════════════════════════════════════════════════════
+function checkLvl(){
+  const nxt=LEVELS[S.lv];
+  if(!nxt||S.tb<nxt.threshold)return;
+  S.lv=nxt.level;
+  S.cps=calcCps();
+  document.getElementById('lu-emoji').textContent=nxt.emoji;
+  document.getElementById('lu-title').textContent=nxt.name;
+  document.getElementById('lu-sub').textContent='Level '+nxt.level+' Unlocked';
+  document.getElementById('lu-desc').textContent=
+    'Welcome to the rank of '+nxt.name+'.'+(nxt.bonus?' Bonus: '+nxt.bonus+'.':' New buildings and upgrades await.');
+  document.getElementById('lu').classList.add('show');
+  burst(window.innerWidth/2,window.innerHeight/2,30);
+}
+document.getElementById('lu-btn').addEventListener('click',()=>{
+  document.getElementById('lu').classList.remove('show');
+});
+
+// ═══════════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════════
+let achQ=[],achBusy=false;
+function checkAch(){
+  ACHIEVEMENTS.forEach(a=>{if(!S.ach.has(a.id)&&a.check(S)){S.ach.add(a.id);achQ.push(a);}});
+  if(!achBusy)nextAch();
+}
+function nextAch(){
+  if(!achQ.length){achBusy=false;return;}
+  achBusy=true;
+  const a=achQ.shift();
+  const t=document.getElementById('ach');
+  document.getElementById('ach-ico').textContent=a.ico;
+  document.getElementById('ach-t').textContent=a.name;
+  document.getElementById('ach-s').textContent=a.sub;
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');setTimeout(nextAch,450);},3000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PARTICLES HELPER
+// ═══════════════════════════════════════════════════════════
+function flash(el){
+  el.classList.add('flash');
+  el.addEventListener('animationend',()=>el.classList.remove('flash'),{once:true});
+}
+function burst(x,y,count){
+  const pops=['🍪','✨','⭐','✦','·'];
+  for(let i=0;i<count;i++){
+    setTimeout(()=>{
+      const p=document.createElement('div');
+      p.className='burst';
+      const ang=Math.random()*Math.PI*2;
+      const d=60+Math.random()*160;
+      const dur=(0.7+Math.random()*0.7).toFixed(2);
+      p.textContent=pops[Math.floor(Math.random()*pops.length)];
+      p.style.cssText=
+        `left:${x}px;top:${y}px;`+
+        `--tx:${(Math.cos(ang)*d).toFixed(1)}px;`+
+        `--ty:${(Math.sin(ang)*d).toFixed(1)}px;`+
+        `--rot:${((Math.random()-0.5)*360).toFixed(0)}deg;`+
+        `--dur:${dur}s`;
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(),dur*1000+100);
+    },i*35);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// GOLDEN COOKIE
+// ═══════════════════════════════════════════════════════════
+let gcFade=null;
+function spawnGc(){
+  const gc=document.getElementById('gc');
+  const m=90,W=window.innerWidth,H=window.innerHeight;
+  gc.style.left=(m+Math.random()*(W-m*2)-32)+'px';
+  gc.style.top=(m+Math.random()*(H-m*2-72)-32)+'px';
+  gc.style.display='block';
+  gc.style.opacity='0';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{gc.style.opacity='1';}));
+  gcFade=setTimeout(()=>{
+    gc.style.opacity='0';
+    setTimeout(()=>{gc.style.display='none';},500);
+    schedGc();
+  },13000);
+}
+function schedGc(){setTimeout(spawnGc,28000+Math.random()*52000);}
+document.getElementById('gc').addEventListener('click',function(e){
+  clearTimeout(gcFade);
+  const gc=document.getElementById('gc');
+  gc.style.opacity='0';
+  setTimeout(()=>{gc.style.display='none';},400);
+  const bonus=Math.floor(S.cps*15+15*S.cm+100);
+  S.c+=bonus;S.tb+=bonus;S.gc++;
+  S.gAct=true;S.gMult=7;S.gRem=30;
+  document.getElementById('gc-banner').style.display='block';
+  burst(e.clientX,e.clientY,20);
+  const lbl=document.createElement('div');
+  lbl.className='fl';
+  lbl.style.cssText=`left:${e.clientX}px;top:${e.clientY-14}px;color:#ffd060;font-size:16px`;
+  lbl.textContent='✦ +'+Ns(bonus)+' golden bonus!';
+  document.body.appendChild(lbl);
+  setTimeout(()=>lbl.remove(),900);
+  checkAch();render();schedGc();
+});
+setInterval(()=>{
+  if(!S.gAct)return;
+  S.gRem--;
+  document.getElementById('gc-sec').textContent=S.gRem;
+  if(S.gRem<=0){S.gAct=false;S.gMult=1;document.getElementById('gc-banner').style.display='none';}
+},1000);
+
+// ═══════════════════════════════════════════════════════════
+// GAME LOOP
+// ═══════════════════════════════════════════════════════════
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,0.5);last=now;
+  const gain=S.cps*dt*S.gMult;
+  if(gain>0){S.c+=gain;S.tb+=gain;}
+  checkLvl();
+  if(Math.random()<0.05)checkAch();
+  render();
+  requestAnimationFrame(loop);
+}
+
+// INIT
+S.cps=calcCps();
+render();
+requestAnimationFrame(loop);
+schedGc();
+</script>
+</body>
+</html>
