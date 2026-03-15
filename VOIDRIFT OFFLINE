@@ -523,20 +523,20 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   <div class="sidebar-content">
 
     <!-- ── AD SLOT 1 ────────────────────────────────────────
-         Paste your first ad script here, replacing the
+         ad script here, replacing the
          placeholder content inside this sidebar-slot div.
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
-      <!-- PASTE AD SCRIPT 1 HERE -->
+      <!-- AD SCRIPT 1 HERE -->
       <script async="async" data-cfasync="false" src="https://pl28922593.effectivegatecpm.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
 <div id="container-8f96b67638e5d64529051d047142d046"></div>
     </div>
 
     <!-- ── AD SLOT 2 ────────────────────────────────────────
-         Paste your second ad script here.
+         second ad script here.
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
-      <!-- PASTE AD SCRIPT 2 HERE -->
+      <!-- AD SCRIPT 2 HERE -->
   <script>
   atOptions = {
     'key' : '0b8fdc98e079f943327310ceb227df4d',
