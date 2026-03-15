@@ -241,15 +241,16 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
    ═══════════════════════════════════════════════════════════ */
 
 :root {
-  --sb-width: clamp(110px, 12vw, 200px);
+  --sb-width: clamp(200px, 18vw, 280px);
+  --sb-top: 80px; /* sidebar starts below the title area */
 }
 
 /* Sidebar column base */
 .sidebar {
   position: fixed;
-  top: 0;
+  top: var(--sb-top);
   width: var(--sb-width);
-  height: 100vh;
+  height: calc(100vh - var(--sb-top));
   z-index: 300;
   background: rgba(4, 8, 18, 0.97);
   display: flex;
@@ -523,30 +524,20 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   <div class="sidebar-content">
 
     <!-- ── AD SLOT 1 ────────────────────────────────────────
-         ad script here, replacing the
+         Paste your first ad script here, replacing the
          placeholder content inside this sidebar-slot div.
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
-      <!-- AD SCRIPT 1 HERE -->
-      <script async="async" data-cfasync="false" src="https://pl28922593.effectivegatecpm.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
-<div id="container-8f96b67638e5d64529051d047142d046"></div>
+      <!-- PASTE AD SCRIPT 1 HERE -->
+      <span class="slot-placeholder">Ad Slot 1</span>
     </div>
 
     <!-- ── AD SLOT 2 ────────────────────────────────────────
-         second ad script here.
+         Paste your second ad script here.
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
-      <!-- AD SCRIPT 2 HERE -->
-  <script>
-  atOptions = {
-    'key' : '0b8fdc98e079f943327310ceb227df4d',
-    'format' : 'iframe',
-    'height' : 200,
-    'width' : 200,
-    'params' : {}
-  };
-</script>
-<script src="https://www.highperformanceformat.com/0b8fdc98e079f943327310ceb227df4d/invoke.js"></script>
+      <!-- PASTE AD SCRIPT 2 HERE -->
+      <span class="slot-placeholder">Ad Slot 2</span>
     </div>
 
   </div>
@@ -693,7 +684,14 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
       <div class="stat-bar-bg"><div id="boost-bar" style="width:100%"></div></div>
       <div class="stat-bar-text" id="boost-text">100%</div>
     </div>
+    <div class="stat-bar-col">
+      <div class="stat-bar-label">AMMO</div>
+      <div class="stat-bar-bg"><div id="ammo-bar" style="width:100%;background:#ffdd00"></div></div>
+      <div class="stat-bar-text" id="ammo-text">100</div>
+    </div>
   </div>
+  <!-- Out of ammo warning -->
+  <div id="ammo-warning" style="display:none;position:absolute;bottom:80px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:0.75rem;letter-spacing:0.2em;color:#ff4060;text-shadow:0 0 12px rgba(255,64,96,0.8);pointer-events:none;text-transform:uppercase;">OUT OF AMMO</div>
   <!-- Takeover safe bars — shown only in takeover mode -->
   <div id="safe-bars-wrap" style="position:absolute;top:24px;left:50%;transform:translateX(-50%);display:none;gap:20px;align-items:flex-end;">
     <div class="stat-bar-col" style="width:180px">
@@ -776,6 +774,10 @@ const CFG = {
   BOOST_RECHARGE_DELAY: 1.0,
   ENEMY_RESPAWN_TIME:   5,    // FFA mode only — bots respawn; 0 = no respawn
   PLAYER_FOCUS_WEIGHT:  0.4,  // 0–1: how much bots prefer targeting the player vs others
+  AMMO_MAX:             100,  // starting ammo (each shot = 1 ammo)
+  AMMO_PER_PICKUP:      10,   // ammo restored per pickup dot
+  AMMO_PICKUP_COUNT:    20,   // number of ammo dots on map at once
+  AMMO_PICKUP_RADIUS:   18,   // pickup collection radius
   SAFE_HP:              4000, // Takeover: safe starting health (modifiable)
   SAFE_RADIUS:          40,   // collision radius of the safe
   SAFE_RESPAWN_DELAY:   4,    // respawn delay in takeover mode
@@ -842,6 +844,13 @@ const Particles = {
     for(let i=0;i<10;i++){const a=Math.random()*Math.PI*2,sp=80+Math.random()*160;this.spawn(x,y,Math.cos(a)*sp,Math.sin(a)*sp,st.color,1.2+Math.random()*1.5,.18+Math.random()*.18);}
     this.spawn(x,y,0,0,'rgba(255,255,255,0.9)',4,.08);
   },
+  emitAmmoPickup(x,y){
+    for(var i=0;i<8;i++){
+      var a=Math.random()*Math.PI*2,sp=40+Math.random()*80;
+      this.spawn(x,y,Math.cos(a)*sp,Math.sin(a)*sp,'rgba(255,220,0,0.9)',1.5+Math.random()*1.5,.25+Math.random()*.2);
+    }
+    this.spawn(x,y,0,0,'rgba(255,255,180,0.95)',5,.1);
+  },
   emitExplosion(x,y){
     for(let i=0;i<20;i++){const a=Math.random()*Math.PI*2,sp=120+Math.random()*220;const h=Math.random()<.5?`hsl(${20+Math.random()*30},100%,60%)`:`hsl(${185+Math.random()*30},100%,65%)`;this.spawn(x,y,Math.cos(a)*sp,Math.sin(a)*sp,h,2.5+Math.random()*2.5,.5+Math.random()*.4);}
     for(let i=0;i<30;i++){const a=Math.random()*Math.PI*2,sp=30+Math.random()*90;this.spawn(x,y,Math.cos(a)*sp,Math.sin(a)*sp,'rgba(255,220,100,0.9)',1+Math.random()*2,.8+Math.random()*.6);}
@@ -889,6 +898,7 @@ const GS = {
   borderAnchored:false,
   over:false,
   safes:[],      // [{team, x, y, hp, maxHp}] — team takeover mode
+  ammoPickups:[], // [{x, y, pulse}] — ammo dots on the map
 };
 
 // Team IDs: 0 = player team, 1 = enemy team, -1 = FFA/BR (free-for-all)
@@ -934,6 +944,7 @@ function createShipBase(id,username,team,spawnSide){
     hp:CFG.PLAYER_MAX_HP,maxHp:CFG.PLAYER_MAX_HP,
     alive:true,invuln:CFG.RESPAWN_INVULN,shootCooldown:0,
     boostFuel:CFG.BOOST_MAX,boostRechargeTimer:0,boosting:false,
+    ammo:CFG.AMMO_MAX,
     borderAnchored:false,lastDamageTime:-999,
     cosmetics:{bulletStyle:'default'},
     kills:0,score:0,
@@ -950,6 +961,21 @@ function createBot(team,spawnSide){
   base._ai={state:'patrol',patrolAngle:Math.random()*Math.PI*2,stateTimer:0,
             currentTarget:null,fleeTimer:0,respawnTimer:0,takeoverTask:null};
   return base;
+}
+
+// ─── AMMO PICKUPS ────────────────────────────────────────────────────────────
+function spawnAmmoPickups(){
+  GS.ammoPickups=[];
+  for(var i=0;i<CFG.AMMO_PICKUP_COUNT;i++){
+    var p=randPos(100);
+    GS.ammoPickups.push({x:p.x,y:p.y,pulse:Math.random()*Math.PI*2});
+  }
+}
+
+function respawnAmmoPickup(idx){
+  // Respawn dot at a new random location
+  var p=randPos(100);
+  GS.ammoPickups[idx]={x:p.x,y:p.y,pulse:Math.random()*Math.PI*2};
 }
 
 // ─── AI ──────────────────────────────────────────────────────────────────────
@@ -1245,7 +1271,11 @@ function tickGame(now){
       p.hp=Math.min(p.maxHp,p.hp+CFG.REGEN_RATE*dt);
 
     if(p.shootCooldown>0)p.shootCooldown-=dt;
-    if(Input.keys.shoot&&p.shootCooldown<=0){spawnBullet(p);p.shootCooldown=CFG.SHOOT_COOLDOWN;}
+    if(Input.keys.shoot&&p.shootCooldown<=0&&p.ammo>0){
+      spawnBullet(p);
+      p.ammo=Math.max(0,p.ammo-1);
+      p.shootCooldown=CFG.SHOOT_COOLDOWN;
+    }
   } else {
     if(deathLingerTimer>0){deathLingerTimer-=dt;if(deathLingerTimer<=0)UI.showRespawnScreen();}
   }
@@ -1334,6 +1364,20 @@ function tickGame(now){
 
     return true;
   });
+
+  // ── AMMO PICKUPS ────────────────────────────────────────────────────────
+  if(p.alive){
+    for(var ai2=0;ai2<GS.ammoPickups.length;ai2++){
+      var ap=GS.ammoPickups[ai2];
+      if(!ap) continue;
+      ap.pulse+=dt*3; // animate
+      if(Math.hypot(p.x-ap.x,p.y-ap.y)<CFG.AMMO_PICKUP_RADIUS+CFG.PLAYER_RADIUS){
+        p.ammo=Math.min(CFG.AMMO_MAX,p.ammo+CFG.AMMO_PER_PICKUP);
+        Particles.emitAmmoPickup(ap.x,ap.y);
+        respawnAmmoPickup(ai2);
+      }
+    }
+  }
 
   Particles.tick(dt);
   UI.updateHUD();
@@ -1473,6 +1517,30 @@ const Render={
       }
     }
     Particles.draw(ctx);
+    // Ammo pickup dots
+    for(var api=0;api<GS.ammoPickups.length;api++){
+      var apc=GS.ammoPickups[api];
+      if(!apc) continue;
+      var glow=0.55+0.45*Math.sin(apc.pulse);
+      var outerR=7+2*Math.sin(apc.pulse*0.7);
+      ctx.save();
+      ctx.translate(apc.x,apc.y);
+      // Outer glow
+      var ag=ctx.createRadialGradient(0,0,0,0,0,outerR*2.5);
+      ag.addColorStop(0,'rgba(255,210,0,'+glow*0.6+')');
+      ag.addColorStop(1,'rgba(255,180,0,0)');
+      ctx.fillStyle=ag;
+      ctx.beginPath();ctx.arc(0,0,outerR*2.5,0,Math.PI*2);ctx.fill();
+      // Core dot
+      ctx.shadowColor='rgba(255,220,0,0.9)';ctx.shadowBlur=10;
+      ctx.fillStyle='rgba(255,220,60,'+glow+')';
+      ctx.beginPath();ctx.arc(0,0,outerR,0,Math.PI*2);ctx.fill();
+      // Inner bright core
+      ctx.shadowBlur=0;
+      ctx.fillStyle='rgba(255,255,200,0.9)';
+      ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
     // Bullets
     for(const b of GS.bullets){
       const bs=COSMETICS.bulletStyle[b.bulletStyle]??COSMETICS.bulletStyle.default;
@@ -1708,6 +1776,12 @@ const UI={
       mctx.beginPath();mctx.arc(b.x*sc,b.y*sc,2,0,Math.PI*2);
       mctx.fillStyle=b.team===0?'#00ff88':b.team===-1?'#bb88ff':'#ff4060';mctx.fill();
     }
+    // Ammo pickups on minimap
+    mctx.fillStyle='rgba(255,210,0,0.7)';
+    for(var ami=0;ami<GS.ammoPickups.length;ami++){
+      var amp=GS.ammoPickups[ami];if(!amp)continue;
+      mctx.fillRect(amp.x*sc-1.5,amp.y*sc-1.5,3,3);
+    }
     if(p){mctx.beginPath();mctx.arc(p.x*sc,p.y*sc,4,0,Math.PI*2);mctx.fillStyle='#00d4ff';mctx.fill();}
   },
   addKillFeed(killer,victim){
@@ -1780,7 +1854,7 @@ const EscMenu={
   close(){ document.getElementById('esc-overlay').classList.add('hidden');gameRunning=true; },
   quit(){
     this.close();gameRunning=false;GS.over=false;
-    GS.player=null;GS.bots=[];GS.bullets=[];GS.safes=[];GS.score=0;GS.kills=0;GS.deaths=0;GS.borderAnchored=false;
+    GS.player=null;GS.bots=[];GS.bullets=[];GS.safes=[];GS.ammoPickups=[];GS.score=0;GS.kills=0;GS.deaths=0;GS.borderAnchored=false;
     Particles.pool=[];usedNames.clear();deathLingerTimer=0;
     document.getElementById('game-screen').classList.add('hidden');
     document.getElementById('hud').classList.add('hidden');
@@ -1793,6 +1867,7 @@ const EscMenu={
     document.getElementById('scoreboard').style.display='none';
     document.getElementById('mini-map').style.display='none';
     document.getElementById('status-bars-wrap').style.display='none';
+    var awEl=document.getElementById('ammo-warning');if(awEl) awEl.style.display='none';
     document.getElementById('alive-counter').style.display='none';
     document.getElementById('team-bar-wrap').style.display='none';
     var safeBarsEl2=document.getElementById('safe-bars-wrap');
@@ -1897,7 +1972,7 @@ document.getElementById('launch-btn').addEventListener('click',()=>{
 
   runConnectionSequence(()=>{
     // Init game state
-    usedNames.clear();GS.over=false;GS.score=0;GS.kills=0;GS.deaths=0;GS.borderAnchored=false;GS.bullets=[];deathLingerTimer=0;Particles.pool=[];
+    usedNames.clear();GS.over=false;GS.score=0;GS.kills=0;GS.deaths=0;GS.borderAnchored=false;GS.bullets=[];GS.ammoPickups=[];deathLingerTimer=0;Particles.pool=[];spawnAmmoPickups();
 
     if(gameMode==='ffa'||gameMode==='br'){
       GS.player=createPlayer(username,-1);
@@ -1943,6 +2018,7 @@ document.getElementById('respawn-btn').addEventListener('click',()=>{
   var prSide=(gameMode==='takeover')?'left':undefined;
   const rp=randPos(200,prSide);p.x=rp.x;p.y=rp.y;p.vx=0;p.vy=0;
   p.hp=p.maxHp;p.alive=true;p.invuln=CFG.RESPAWN_INVULN;
+  p.ammo=CFG.AMMO_MAX;
   p.boostFuel=CFG.BOOST_MAX;p.boostRechargeTimer=0;
   p.borderAnchored=false;p.lastDamageTime=-999;GS.borderAnchored=false;
   deathLingerTimer=0;gameRunning=true;
