@@ -457,7 +457,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 }
 </style>
 </head>
-<body onload="checkFullscreen()">
+<body>
 
 <!-- ════════════════════════════════════════════════════════
      LEFT SIDEBAR — News / announcements column
@@ -484,35 +484,34 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
       <p class="news-item">
-        <!-- PASTE NEWS CONTENT HERE -->
-        No news yet.<br>Check back soon.
+        <!-- PASTE NEWS SLOT 1 HERE -->
+        No news yet.<br>Patch updates below.
       </p>
     </div>
 
-    <!-- ── NEWS SLOT 2 ──────────────────────────────────────
-         Add a second news item, patch note, or any HTML
-         content inside this slot.
-         ───────────────────────────────────────────────────── -->
+    <!-- ── NEWS SLOT 2 ───────────────────────────────────── -->
     <div class="sidebar-slot">
       <p class="news-item">
-        <!-- PASTE NEWS CONTENT HERE -->
-        
-      </p>
-    </div>
-<div class="sidebar-slot">
-      <p class="news-item">
-        <!-- PASTE NEWS CONTENT HERE -->
-        
-      </p>
-    </div>
-<div class="sidebar-slot">
-      <p class="news-item">
-        <!-- PASTE NEWS CONTENT HERE -->
-        Credit to TL BAGS.
+        <!-- PASTE NEWS SLOT 2 HERE -->
+        V6.2 Ammo bug fixed.
       </p>
     </div>
 
-    <!-- Add more <div class="sidebar-slot"> blocks as needed -->
+    <!-- ── NEWS SLOT 3 ───────────────────────────────────── -->
+    <div class="sidebar-slot">
+      <p class="news-item">
+        <!-- PASTE NEWS SLOT 3 HERE -->
+        
+      </p>
+    </div>
+
+    <!-- ── NEWS SLOT 4 ───────────────────────────────────── -->
+    <div class="sidebar-slot">
+      <p class="news-item">
+        <!-- PASTE NEWS SLOT 4 HERE -->
+        Credit to TL BAGS
+      </p>
+    </div>
 
   </div>
 </div>
@@ -541,7 +540,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
          ───────────────────────────────────────────────────── -->
     <div class="sidebar-slot">
       <!-- PASTE AD SCRIPT 1 HERE -->
-      <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
+     <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
 <div id="container-8f96b67638e5d64529051d047142d046"></div>
     </div>
 
@@ -552,14 +551,14 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
       <!-- PASTE AD SCRIPT 2 HERE -->
       <script>
   atOptions = {
-    'key' : '997049bce7904492c2a6d34a649fa46e',
+    'key' : '0b8fdc98e079f943327310ceb227df4d',
     'format' : 'iframe',
     'height' : 200,
     'width' : 200,
     'params' : {}
   };
 </script>
-<script src="https://glamourpicklessteward.com/997049bce7904492c2a6d34a649fa46e/invoke.js"></script>
+<script src="https://glamourpicklessteward.com/0b8fdc98e079f943327310ceb227df4d/invoke.js"></script>
     </div>
 
   </div>
@@ -881,10 +880,6 @@ const Particles = {
   },
 };
 
-//fullscreen alert thingy
-function checkFullscreen() {
-  alert("VOIDRIFT is best played in Fullscreen.");
-}
 // ─── STARFIELD ───────────────────────────────────────────────────────────────
 (function(){
   const c=document.getElementById('stars-canvas'),ctx=c.getContext('2d');
@@ -1724,6 +1719,18 @@ const UI={
     const bpct=p.boostFuel/CFG.BOOST_MAX*100;
     const bbar=document.getElementById('boost-bar');bbar.style.width=bpct+'%';bbar.style.background=bpct>60?'#ffcc00':bpct>25?'#ff8800':'#ff4060';
     document.getElementById('boost-text').textContent=Math.round(bpct)+'%';
+    // Ammo bar
+    var ammoBarEl=document.getElementById('ammo-bar');
+    var ammoTextEl=document.getElementById('ammo-text');
+    var ammoWarnEl=document.getElementById('ammo-warning');
+    if(p.ammo===undefined) p.ammo=CFG.AMMO_MAX; // safety fallback
+    var ammoPct=(p.ammo/CFG.AMMO_MAX)*100;
+    if(ammoBarEl){
+      ammoBarEl.style.width=ammoPct+'%';
+      ammoBarEl.style.background=ammoPct>40?'#ffdd00':ammoPct>15?'#ff8800':'#ff4060';
+    }
+    if(ammoTextEl) ammoTextEl.textContent=p.ammo+' / '+CFG.AMMO_MAX;
+    if(ammoWarnEl) ammoWarnEl.style.display=(p.ammo<=0&&p.alive)?'block':'none';
     const bw=document.getElementById('border-warning');
     if(GS.borderAnchored){bw.textContent='BORDER ANCHORED  [X] to release';bw.classList.add('hw');}else bw.classList.remove('hw');
 
