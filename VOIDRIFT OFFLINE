@@ -541,8 +541,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   atOptions = {
     'key' : '0b8fdc98e079f943327310ceb227df4d',
     'format' : 'iframe',
-    'height' : 300,
-    'width' : 160,
+    'height' : 200,
+    'width' : 200,
     'params' : {}
   };
 </script>
