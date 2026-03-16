@@ -1,0 +1,112 @@
+
+        async function mergeUnityWebFiles(baseUrl, filePrefix, totalParts, extension) {
+            const partUrls = [];
+            for (let i = 1; i <= totalParts; i++) {
+                partUrls.push(`${baseUrl}/${filePrefix}_part${i}.${extension}`);
+            }
+
+            const buffers = [];
+            for (let i = 0; i < totalParts; i++) {
+                const response = await fetch(partUrls[i]);
+                if (!response.ok) {
+                    throw new Error(`Failed to load part: ${partUrls[i]}`);
+                }
+                const buffer = await response.arrayBuffer();
+                buffers.push(buffer);
+
+                const progress = ((i + 1) / totalParts) * 100;
+                document.querySelector("#unity-progress-bar-full").style.width = `${progress}%`;
+            }
+
+            const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
+            const combinedBuffer = new Uint8Array(totalLength);
+            let offset = 0;
+
+            buffers.forEach((buffer) => {
+                combinedBuffer.set(new Uint8Array(buffer), offset);
+                offset += buffer.byteLength;
+            });
+
+            return combinedBuffer;
+        }
+
+        var container = document.querySelector("#unity-container");
+        var canvas = document.querySelector("#unity-canvas");
+        var loadingBar = document.querySelector("#unity-loading-bar");
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
+        var warningBanner = document.querySelector("#unity-warning");
+
+        let myGameInstance = null;
+        let isAdShown = false;
+
+        function unityShowBanner(msg, type) {
+            function updateBannerVisibility() {
+                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+            }
+            var div = document.createElement('div');
+            div.innerHTML = msg;
+            warningBanner.appendChild(div);
+            if (type == 'error') div.style = 'background: red; padding: 10px;';
+            else {
+                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+                setTimeout(function() {
+                    warningBanner.removeChild(div);
+                    updateBannerVisibility();
+                }, 5000);
+            }
+            updateBannerVisibility();
+        }
+
+        function showAdOnClick() {
+            if (!isAdShown && typeof sdk !== 'undefined' && typeof sdk.showBanner !== 'undefined') {
+                sdk.showBanner();
+                isAdShown = true;
+            }
+        }
+
+        var buildUrl = "https://cdn.jsdelivr.net/gh/gru6nny/ohd@main/Build";
+        var loaderUrl = buildUrl + "/Granny.loader.js";
+
+        async function initializeGame() {
+            try {
+                const dataBuffer = await mergeUnityWebFiles(buildUrl, "Granny", 2, "data");
+                const wasmBuffer = await mergeUnityWebFiles(buildUrl, "Granny", 2, "wasm");
+
+                const dataBlobUrl = URL.createObjectURL(new Blob([dataBuffer], { type: "application/octet-stream" }));
+                const wasmBlobUrl = URL.createObjectURL(new Blob([wasmBuffer], { type: "application/octet-stream" }));
+
+                var config = {
+                    dataUrl: dataBlobUrl,
+                    frameworkUrl: buildUrl + "/Granny.framework.js",
+                    codeUrl: wasmBlobUrl,
+                    streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/gru6nny/ohd@main/StreamingAssets",
+                    companyName: "Anastasia Kazantseva",
+                    productName: "Granny",
+                    productVersion: "1.0",
+                    showBanner: unityShowBanner,
+                };
+
+                var script = document.createElement("script");
+                script.src = loaderUrl;
+                script.onload = () => {
+                    createUnityInstance(canvas, config, (progress) => {
+                        progressBarFull.style.width = 100 * progress + "%";
+                    }).then((unityInstance) => {
+                        myGameInstance = unityInstance;
+                        loadingBar.style.display = "none";
+                        // Oyun yüklendiğinde tıklama olayını ekle
+                        canvas.addEventListener('pointerdown', showAdOnClick);
+                        canvas.addEventListener('touchstart', showAdOnClick);
+                    }).catch((message) => {
+                        alert(message);
+                    });
+                };
+
+                document.body.appendChild(script);
+            } catch (error) {
+                console.error("Game initialization failed:", error);
+            }
+        }
+
+        initializeGame();
+    
