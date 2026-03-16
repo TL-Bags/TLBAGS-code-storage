@@ -436,7 +436,7 @@ const SYSTEMS = ['UTIPA','XYLAR','NOVAN','DREVOS','KETHON','ZIRAEL','PROSYN','VE
 const MAP_SIZES = { ffa: 15000, battleroyal: 12000, teams: 10000, takeover: 3500 };
 
 // ─── BASE CONFIG ──────────────────────────────────────────────────────────────
-const CFG = {
+let CFG = {
   MAP_SIZE: 10000,       // set dynamically at game start
   PLAYER_SPEED: 340,
   SIDE_THRUST_SPEED: 80,
@@ -674,8 +674,9 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
       ctx.beginPath();ctx.ellipse(ex,ey,R*.18,R*.08,-0.15,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1;ctx.stroke();
     });
     ctx.beginPath();ctx.arc(R*.45,0,R*.2,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-
+    
   } else if(level===3){
+    PLAYER_SPEED = 330;
     // ── LV4 INTERCEPTOR — trident / delta arrow ───────────────────────────
     // Main arrowhead
     ctx.beginPath();ctx.moveTo(R*1.3,0);ctx.lineTo(R*.5,R*.28);ctx.lineTo(R*.1,R*.28);ctx.lineTo(-R*.7,R*.18);ctx.lineTo(-R*.85,0);ctx.lineTo(-R*.7,-R*.18);ctx.lineTo(R*.1,-R*.28);ctx.lineTo(R*.5,-R*.28);ctx.closePath();
@@ -695,6 +696,7 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
 
   } else if(level===4){
     // ── LV5 GUNSHIP — X-wing quad nacelle ────────────────────────────────
+  PLAYER_SPEED = 310;
     // Body
     ctx.beginPath();ctx.moveTo(R*1.1,0);ctx.lineTo(R*.5,R*.22);ctx.lineTo(-R*.6,R*.3);ctx.lineTo(-R*.85,0);ctx.lineTo(-R*.6,-R*.3);ctx.lineTo(R*.5,-R*.22);ctx.closePath();
     ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
@@ -714,6 +716,7 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
     ctx.beginPath();ctx.arc(R*.3,0,R*.22,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
 
   } else if(level===5){
+    PLAYER_SPEED = 290;
     // ── LV6 WARBIRD — arrowhead with swept scythe wings ──────────────────
     // Razor fuselage — very thin and long
     ctx.beginPath();
@@ -742,6 +745,7 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
     ctx.beginPath();ctx.arc(R*.6,0,R*.18,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
 
   } else if(level===6){
+    PLAYER_SPEED = 270;
     // ── LV7 DREADNOUGHT — delta fortress with massive swept delta wings ───
     // Narrow central spine
     ctx.beginPath();
@@ -780,6 +784,7 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
     ctx.beginPath();ctx.arc(R*.6,0,R*.28,0,Math.PI*2);ctx.fillStyle=cg6;ctx.fill();
 
   } else if(level===7||level===8||level===9){
+    PLAYER_SPEED = 250;
     // ── LV8 OMEGA (base shape) — used for both variants briefly ──────────
     // Shown only until variant selected, or for bots
     const isAlpha=level===8;
