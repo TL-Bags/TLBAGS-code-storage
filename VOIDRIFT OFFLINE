@@ -225,10 +225,13 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   <div class="sidebar-glow"></div><div class="sidebar-lines"></div><div class="sidebar-scanline"></div>
   <div class="sidebar-header"><div class="sidebar-header-title">ADVERTISEMENTS</div></div>
   <div class="sidebar-content">
-    <div class="sidebar-slot"><span class="slot-placeholder">Ad Slot 1</span>
-//advertisement
+    <div class="sidebar-slot">
+<span class="slot-placeholder">
 <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
-<div id="container-8f96b67638e5d64529051d047142d046">
+<div id="container-8f96b67638e5d64529051d047142d046"></span>
+</div>
+</div>
+    <div class="sidebar-slot"><span class="slot-placeholder">
 <script>
   atOptions = {
     'key' : '0b8fdc98e079f943327310ceb227df4d',
@@ -239,9 +242,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   };
 </script>
 <script src="https://glamourpicklessteward.com/0b8fdc98e079f943327310ceb227df4d/invoke.js"></script>
-</div>
-</div>
-    <div class="sidebar-slot"><span class="slot-placeholder">Ad Slot 2</span></div>
+</span></div>
   </div>
 </div>
 
