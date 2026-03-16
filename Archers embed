@@ -353,8 +353,8 @@
     .ad-sidebar {
       position: fixed;
       top: 50%;
-      width: 300px;
-      height: 700px;
+      width: 200px;
+      height: 600px;
       background: #000;
       transform: translateY(-50%);
       z-index: 999;
