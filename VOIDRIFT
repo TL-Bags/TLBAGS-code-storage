@@ -90,8 +90,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .esc-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:0.25em;color:var(--accent);text-align:center;margin-bottom:0.5rem;}
 
 /* ── GAME ── */
-#game-screen{z-index:1;}
-#game-canvas{display:block;cursor:none;}
+#game-screen{z-index:1;cursor:crosshair;}
+#game-canvas{display:block;cursor:crosshair;}
 
 /* ── HUD ── */
 #hud{position:fixed;inset:0;z-index:5;pointer-events:none;}
@@ -188,6 +188,25 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .news-item{font-family:'Share Tech Mono',monospace;font-size:clamp(0.48rem,0.75vw,0.6rem);color:rgba(180,210,255,0.6);line-height:1.75;border-left:2px solid rgba(0,212,255,0.2);padding-left:8px;}
 .sidebar-scanline{position:absolute;left:0;right:0;height:60px;background:linear-gradient(180deg,transparent 0%,rgba(0,212,255,0.025) 50%,transparent 100%);pointer-events:none;animation:scanline 5s linear infinite;z-index:0;}
 @keyframes scanline{0%{top:-60px}100%{top:100vh}}
+
+/* ── BOMBS ── */
+#bomb-timer-hud{position:absolute;top:70px;right:24px;font-size:0.6rem;color:#ff4060;letter-spacing:0.1em;display:flex;flex-direction:column;gap:3px;pointer-events:none;}
+.bomb-timer-entry{background:rgba(5,8,16,0.85);border-left:2px solid #ff4060;padding:3px 7px;font-family:'Orbitron',sans-serif;font-size:0.58rem;}
+#bomb-cd-bar{position:absolute;bottom:140px;left:50%;transform:translateX(-50%);font-family:'Orbitron',sans-serif;font-size:0.58rem;letter-spacing:0.12em;color:#ff4060;pointer-events:none;opacity:0;text-align:center;}
+#bomb-cd-bar.show{opacity:1;}
+
+/* ── OMEGA PICKER ── */
+#omega-picker{position:fixed;inset:0;background:rgba(5,8,16,0.92);z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;backdrop-filter:blur(6px);}
+.omega-title{font-family:'Orbitron',sans-serif;font-size:1.6rem;font-weight:900;color:#cc00ff;text-shadow:0 0 40px rgba(204,0,255,0.9),0 0 80px rgba(204,0,255,0.4);letter-spacing:0.2em;animation:pulse 2s infinite;}
+.omega-sub{font-size:0.7rem;letter-spacing:0.3em;color:rgba(204,0,255,0.6);text-transform:uppercase;}
+.omega-cards{display:flex;gap:2rem;}
+.omega-card{background:rgba(10,0,25,0.95);border:2px solid rgba(204,0,255,0.4);padding:1.8rem 2.2rem;width:220px;display:flex;flex-direction:column;align-items:center;gap:0.8rem;cursor:pointer;transition:all 0.2s;text-align:center;}
+.omega-card:hover{border-color:#cc00ff;background:rgba(40,0,80,0.95);box-shadow:0 0 40px rgba(204,0,255,0.3);}
+.omega-card-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.1rem;color:#cc00ff;letter-spacing:0.15em;}
+.omega-card canvas{display:block;}
+.omega-card-stat{font-size:0.6rem;color:rgba(200,180,255,0.7);letter-spacing:0.1em;line-height:1.8;}
+.omega-card-stat span{color:#cc00ff;}
+
 </style>
 </head>
 <body>
@@ -206,8 +225,24 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
   <div class="sidebar-glow"></div><div class="sidebar-lines"></div><div class="sidebar-scanline"></div>
   <div class="sidebar-header"><div class="sidebar-header-title">ADVERTISEMENTS</div></div>
   <div class="sidebar-content">
-    <div class="sidebar-slot"><span class="slot-placeholder">Ad Slot 1</span></div>
-    <div class="sidebar-slot"><span class="slot-placeholder">Ad Slot 2</span></div>
+    <div class="sidebar-slot">
+<span class="slot-placeholder">
+<script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
+<div id="container-8f96b67638e5d64529051d047142d046"></span>
+</div>
+</div>
+    <div class="sidebar-slot"><span class="slot-placeholder">
+<script>
+  atOptions = {
+    'key' : '0b8fdc98e079f943327310ceb227df4d',
+    'format' : 'iframe',
+    'height' : 200,
+    'width' : 200,
+    'params' : {}
+  };
+</script>
+<script src="https://glamourpicklessteward.com/0b8fdc98e079f943327310ceb227df4d/invoke.js"></script>
+</span></div>
   </div>
 </div>
 
@@ -227,7 +262,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     <div>
       <div class="field-label">Game Mode</div>
       <div class="mode-row">
-        <button class="mode-btn active" data-mode="battleroyal">Battle Royal</button>
+        <button class="mode-btn active" data-mode="ffa">FFA</button>
+        <button class="mode-btn" data-mode="battleroyal">Battle Royal</button>
         <button class="mode-btn" data-mode="teams">Teams</button>
         <button class="mode-btn" data-mode="takeover">Takeover</button>
       </div>
@@ -242,6 +278,12 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
       <button class="btn-secondary" id="settings-btn">SETTINGS</button>
     </div>
     <div class="status-line" id="enter-status">&nbsp;</div>
+    <div id="dev-pin-panel" style="border:1px solid rgba(255,64,96,0.25);background:rgba(255,64,96,0.04);padding:8px 10px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:0.52rem;letter-spacing:0.18em;color:rgba(255,64,96,0.55);text-transform:uppercase;white-space:nowrap;">DEV PIN</span>
+      <input type="password" id="dev-pin-input" maxlength="32" placeholder="enter pin" style="flex:1;font-size:0.6rem;padding:4px 6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,64,96,0.2);border-bottom:2px solid rgba(255,64,96,0.4);color:#ff4060;font-family:'Share Tech Mono',monospace;outline:none;" autocomplete="off">
+      <button id="dev-pin-btn" style="font-family:'Orbitron',sans-serif;font-size:0.52rem;letter-spacing:0.1em;padding:4px 10px;background:transparent;border:1px solid rgba(255,64,96,0.35);color:rgba(255,64,96,0.6);cursor:pointer;text-transform:uppercase;">SEND</button>
+      <span id="dev-pin-status" style="font-size:0.52rem;color:rgba(255,64,96,0.5);min-width:40px;"></span>
+    </div>
     <div class="controls-hint-txt" id="controls-hint-display"></div>
   </div>
 </div>
@@ -254,6 +296,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     <div class="conn-subtitle" id="conn-mode-label">BATTLE ROYAL SECTOR</div>
     <div class="conn-log" id="conn-log"></div>
     <div class="conn-bar-wrap"><div class="conn-bar" id="conn-bar"></div></div>
+    <div id="conn-tip" style="margin-top:1.2rem;font-size:0.6rem;color:rgba(0,212,255,0.45);letter-spacing:0.12em;text-align:center;line-height:1.9;border-top:1px solid rgba(0,212,255,0.12);padding-top:0.8rem;max-width:420px;"></div>
   </div>
 </div>
 
@@ -279,6 +322,36 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     <button class="btn-secondary" id="esc-settings-btn">SETTINGS</button>
     <button class="btn-secondary" id="esc-quit-btn">QUIT TO MENU</button>
   </div>
+</div>
+
+
+<!-- OMEGA PICKER -->
+<div id="omega-picker">
+  <div class="omega-title">OMEGA ASCENSION</div>
+  <div class="omega-sub">Choose your final form</div>
+  <div class="omega-cards">
+    <div class="omega-card" id="pick-alpha">
+      <div class="omega-card-title">α ALPHA</div>
+      <canvas id="omega-alpha-preview" width="120" height="120"></canvas>
+      <div class="omega-card-stat">
+        HULL <span>580</span> · DMG <span>90</span><br>
+        BULLET <span>Dyson Cannon</span><br>
+        TURN <span>720°/s max</span><br>
+        SPEED <span>Normal</span>
+      </div>
+    </div>
+    <div class="omega-card" id="pick-beta">
+      <div class="omega-card-title">β BETA</div>
+      <canvas id="omega-beta-preview" width="120" height="120"></canvas>
+      <div class="omega-card-stat">
+        HULL <span>340</span> · DMG <span>55+22</span><br>
+        BULLET <span>Triple Parallel</span><br>
+        TURN <span>Unlimited</span><br>
+        SPEED <span>+35% faster</span>
+      </div>
+    </div>
+  </div>
+  <div class="omega-sub" style="font-size:0.55rem;opacity:0.5">click a card to choose</div>
 </div>
 
 <!-- GAME -->
@@ -311,6 +384,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     </div>
   </div>
   <div id="ammo-warning">OUT OF AMMO</div>
+  <div id="bomb-timer-hud"></div>
+  <div id="bomb-cd-bar"></div>
   <div id="upgrade-flash"></div>
   <div id="border-warning"></div>
   <div id="border-cd"></div>
@@ -358,7 +433,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 const SYSTEMS = ['UTIPA','XYLAR','NOVAN','DREVOS','KETHON','ZIRAEL','PROSYN','VELUUN','AXTROS','CALYPH'];
 
 // ─── MAP SIZE BY MODE ─────────────────────────────────────────────────────────
-const MAP_SIZES = { battleroyal: 10000, teams: 10000, takeover: 3500 };
+const MAP_SIZES = { ffa: 15000, battleroyal: 12000, teams: 10000, takeover: 3500 };
 
 // ─── BASE CONFIG ──────────────────────────────────────────────────────────────
 const CFG = {
@@ -401,6 +476,24 @@ const LEVELS = [
   {pts:900, maxHp:265, bulletMode:'spread', bulletDmg:14, bulletR:4.5, shootCd:0.22, desc:'WARBIRD'},
   {pts:1500,maxHp:320, bulletMode:'plasma', bulletDmg:35, bulletR:9,   shootCd:0.40, desc:'DREADNOUGHT'},
   {pts:2500,maxHp:400, bulletMode:'nova',   bulletDmg:50, bulletR:12,  shootCd:0.50, desc:'OMEGA'},
+  // Omega variants — assigned when player reaches level 7 via omegaVariant on ship
+  // ALPHA: massive dmg, huge bullet, lots of hp, slow turn
+  {pts:2500,maxHp:580, bulletMode:'omega_alpha', bulletDmg:90, bulletR:18, shootCd:0.65, desc:'OMEGA ALPHA', isOmega:true},
+  // BETA: fast, 3-shot (1 big + 2 small), moderate dmg
+  {pts:2500,maxHp:340, bulletMode:'omega_beta',  bulletDmg:55, bulletR:10, shootCd:0.38, desc:'OMEGA BETA',  isOmega:true},
+];
+
+
+// Bullet color/glow per level — elongated capsule with glow
+const BULLET_STYLE=[
+  {core:'#00eeff',glow:'rgba(0,238,255,0.9)',trail:'rgba(0,200,230,0.4)'},  // lv0 cyan
+  {core:'#44ffcc',glow:'rgba(68,255,200,0.9)',trail:'rgba(40,200,150,0.4)'},// lv1 teal
+  {core:'#ffe033',glow:'rgba(255,224,51,0.9)',trail:'rgba(220,180,0,0.4)'}, // lv2 yellow
+  {core:'#ffaa00',glow:'rgba(255,170,0,0.9)',trail:'rgba(220,120,0,0.4)'},  // lv3 amber
+  {core:'#ff6600',glow:'rgba(255,102,0,0.9)',trail:'rgba(200,60,0,0.4)'},   // lv4 orange
+  {core:'#ff2200',glow:'rgba(255,34,0,0.95)',trail:'rgba(180,0,0,0.5)'},    // lv5 red
+  {core:'#ff0066',glow:'rgba(255,0,102,0.95)',trail:'rgba(160,0,60,0.5)'}, // lv6 crimson
+  {core:'#cc00ff',glow:'rgba(204,0,255,0.98)',trail:'rgba(120,0,200,0.6)'}, // lv7 OMEGA purple
 ];
 
 // ─── KEY BINDINGS ─────────────────────────────────────────────────────────────
@@ -413,6 +506,7 @@ const BIND_DEFS = [
   {id:'rotRight',  label:'Rotate Right',   def:'ArrowRight'},
   {id:'shoot',     label:'Shoot',          def:'Space'},
   {id:'boost',     label:'Boost',          def:'ShiftLeft'},
+  {id:'bomb',      label:'Drop Bomb',       def:'KeyR'},
   {id:'escMenu',   label:'Pause Menu',     def:'Escape'},
 ];
 const Binds = {
@@ -497,10 +591,12 @@ const Particles = {
 
 // ─── GAME STATE ───────────────────────────────────────────────────────────────
 let nextId=1,gameRunning=false,deathLingerTimer=0;
-let currentSystemName='',gameMode='battleroyal';
+let currentSystemName='',gameMode='ffa';
+let devMode=false;
+let playerBombCd=0; // seconds until player can drop another bomb
 
 const GS = {
-  player:null, bots:[], bullets:[], asteroids:[], ammoPickups:[],
+  player:null, bots:[], bullets:[], asteroids:[], ammoPickups:[], bombs:[], worldStars:[], safes:[],
   score:0, kills:0, deaths:0, lives:CFG.MAX_LIVES, level:0,
   over:false,
   borderCrossTimer:0, // cooldown tracker for player border crossing
@@ -510,7 +606,7 @@ const GS = {
 function areEnemies(a,b){
   if(!a||!b||a.id===b.id) return false;
   if(gameMode==='teams') return a.team!==b.team;
-  return true; // BR and takeover: everyone vs everyone
+  return true; // ffa, BR, takeover: everyone vs everyone
 }
 
 // ─── NAMES ────────────────────────────────────────────────────────────────────
@@ -522,107 +618,329 @@ function randPos(margin){ margin=margin||200; return {x:margin+Math.random()*(CF
 function angleDiff(a,b){let d=((b-a+Math.PI)%(Math.PI*2))-Math.PI;if(d<-Math.PI)d+=Math.PI*2;return d;}
 
 // ─── SHIP DESIGNS BY LEVEL ────────────────────────────────────────────────────
-function drawShipDesign(ctx, level, skin, R, angle){
-  // level 0-7 → increasingly complex hull shapes
+// Helper to stroke a sharp glowing edge line
+function _edge(ctx,body,x1,y1,x2,y2,w=1.2){ctx.strokeStyle=body;ctx.lineWidth=w;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+
+function drawShipDesign(ctx, level, skin, R, angle, animT){
   ctx.save();
   ctx.rotate(angle);
-  const fill=skin.fill,body=skin.body,cock=skin.cockpit;
+  const fill=skin.fill, body=skin.body, cock=skin.cockpit;
+  animT=animT||0;
 
-  if(level===0){ // Scout — simple triangle
-    ctx.beginPath();ctx.moveTo(R,0);ctx.lineTo(-R*.7,R*.5);ctx.lineTo(-R*.5,0);ctx.lineTo(-R*.7,-R*.5);ctx.closePath();
+  if(level===0){
+    // ── LV1 SCOUT — needle dart ──────────────────────────────────────────
+    ctx.beginPath();
+    ctx.moveTo(R*1.1,0);ctx.lineTo(R*.0,R*.35);ctx.lineTo(-R*.5,R*.28);
+    ctx.lineTo(-R*.6,0);ctx.lineTo(-R*.5,-R*.28);ctx.lineTo(R*.0,-R*.35);
+    ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.4;ctx.stroke();
+    // spine
+    _edge(ctx,body,R*1.1,0,-R*.6,0,0.8);
+    ctx.beginPath();ctx.arc(R*.3,0,R*.14,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+
+  } else if(level===1){
+    // ── LV2 FIGHTER — delta with swept fins ──────────────────────────────
+    // Central body
+    ctx.beginPath();
+    ctx.moveTo(R*1.15,0);ctx.lineTo(R*.1,R*.22);ctx.lineTo(-R*.55,R*.18);
+    ctx.lineTo(-R*.65,0);ctx.lineTo(-R*.55,-R*.18);ctx.lineTo(R*.1,-R*.22);
+    ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
+    // Swept wing panels
+    ctx.beginPath();ctx.moveTo(R*.3,R*.22);ctx.lineTo(-R*.35,R*.9);ctx.lineTo(-R*.6,R*.55);ctx.lineTo(-R*.3,R*.18);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.2;ctx.stroke();
+    ctx.beginPath();ctx.moveTo(R*.3,-R*.22);ctx.lineTo(-R*.35,-R*.9);ctx.lineTo(-R*.6,-R*.55);ctx.lineTo(-R*.3,-R*.18);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.2;ctx.stroke();
+    // Wing tips — sharp spikes
+    _edge(ctx,body,-R*.35,R*.9,-R*.5,R*1.05,1.8);
+    _edge(ctx,body,-R*.35,-R*.9,-R*.5,-R*1.05,1.8);
+    ctx.beginPath();ctx.arc(R*.35,0,R*.18,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+
+  } else if(level===2){
+    // ── LV3 DESTROYER — Y-wing style twin boom ───────────────────────────
+    // Central fuselage
+    ctx.beginPath();ctx.moveTo(R*1.2,0);ctx.lineTo(R*.4,R*.18);ctx.lineTo(-R*.9,R*.22);ctx.lineTo(-R*1.0,0);ctx.lineTo(-R*.9,-R*.22);ctx.lineTo(R*.4,-R*.18);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // Upper boom
+    ctx.beginPath();ctx.moveTo(R*.2,R*.18);ctx.lineTo(R*.3,R*.65);ctx.lineTo(-R*.8,R*.72);ctx.lineTo(-R*.9,R*.52);ctx.lineTo(-R*.85,R*.22);ctx.closePath();
     ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(R*.25,0,R*.18,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-
-  } else if(level===1){ // Fighter — wider wings
-    ctx.beginPath();ctx.moveTo(R,0);ctx.lineTo(-R*.5,R*.7);ctx.lineTo(-R*.7,R*.35);ctx.lineTo(-R*.4,0);ctx.lineTo(-R*.7,-R*.35);ctx.lineTo(-R*.5,-R*.7);ctx.closePath();
+    // Lower boom
+    ctx.beginPath();ctx.moveTo(R*.2,-R*.18);ctx.lineTo(R*.3,-R*.65);ctx.lineTo(-R*.8,-R*.72);ctx.lineTo(-R*.9,-R*.52);ctx.lineTo(-R*.85,-R*.22);ctx.closePath();
     ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
-    ctx.fillStyle=body;ctx.fillRect(R*.3,-1.5,R*.5,3);
-    ctx.beginPath();ctx.arc(R*.2,0,R*.22,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-
-  } else if(level===2){ // Destroyer — heavy with fins
-    ctx.beginPath();ctx.moveTo(R*1.1,0);ctx.lineTo(R*.3,R*.35);ctx.lineTo(-R*.3,R*.8);ctx.lineTo(-R*.8,R*.4);ctx.lineTo(-R*.9,0);ctx.lineTo(-R*.8,-R*.4);ctx.lineTo(-R*.3,-R*.8);ctx.lineTo(R*.3,-R*.35);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
-    ctx.beginPath();ctx.arc(R*.3,0,R*.26,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-    // Armor plates
-    ctx.strokeStyle=body;ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(-R*.2,R*.4);ctx.lineTo(R*.1,R*.5);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(-R*.2,-R*.4);ctx.lineTo(R*.1,-R*.5);ctx.stroke();
-
-  } else if(level===3){ // Interceptor — swept back
-    ctx.beginPath();ctx.moveTo(R*1.2,0);ctx.lineTo(R*.4,R*.25);ctx.lineTo(-R*.2,R*.9);ctx.lineTo(-R*.6,R*.7);ctx.lineTo(-R*.55,R*.2);ctx.lineTo(-R*.7,0);ctx.lineTo(-R*.55,-R*.2);ctx.lineTo(-R*.6,-R*.7);ctx.lineTo(-R*.2,-R*.9);ctx.lineTo(R*.4,-R*.25);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
-    ctx.beginPath();ctx.arc(R*.35,0,R*.24,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-
-  } else if(level===4){ // Gunship — dual nacelles
-    ctx.beginPath();ctx.moveTo(R,0);ctx.lineTo(R*.6,R*.4);ctx.lineTo(-R*.4,R*.7);ctx.lineTo(-R*.9,R*.4);ctx.lineTo(-R*.75,0);ctx.lineTo(-R*.9,-R*.4);ctx.lineTo(-R*.4,-R*.7);ctx.lineTo(R*.6,-R*.4);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
-    // Nacelle pods
-    [[R*.3,R*.55],[R*.3,-R*.55]].forEach(([nx,ny])=>{
-      ctx.beginPath();ctx.ellipse(nx,ny,R*.22,R*.1,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.2;ctx.stroke();
+    // Engine nacelles at boom tips
+    [[R*.05,R*.68],[-R*.82,R*.62]].forEach(([ex,ey])=>{
+      ctx.beginPath();ctx.ellipse(ex,ey,R*.18,R*.08,0.15,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1;ctx.stroke();
     });
-    ctx.beginPath();ctx.arc(R*.2,0,R*.28,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-
-  } else if(level===5){ // Warbird — angular predator
-    ctx.beginPath();ctx.moveTo(R*1.3,0);ctx.lineTo(R*.5,R*.3);ctx.lineTo(R*.2,R*.8);ctx.lineTo(-R*.5,R*.9);ctx.lineTo(-R*1.0,R*.5);ctx.lineTo(-R*.8,0);ctx.lineTo(-R*1.0,-R*.5);ctx.lineTo(-R*.5,-R*.9);ctx.lineTo(R*.2,-R*.8);ctx.lineTo(R*.5,-R*.3);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
-    ctx.beginPath();ctx.arc(R*.4,0,R*.28,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-    ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(-R*.2,0);ctx.lineTo(R*.8,0);ctx.stroke();
-
-  } else if(level===6){ // Dreadnought — massive bulk
-    ctx.beginPath();ctx.moveTo(R*1.4,0);ctx.lineTo(R*.8,R*.5);ctx.lineTo(R*.3,R*.9);ctx.lineTo(-R*.4,R*1.0);ctx.lineTo(-R*1.1,R*.6);ctx.lineTo(-R*1.2,0);ctx.lineTo(-R*1.1,-R*.6);ctx.lineTo(-R*.4,-R*1.0);ctx.lineTo(R*.3,-R*.9);ctx.lineTo(R*.8,-R*.5);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2.5;ctx.stroke();
-    ctx.beginPath();ctx.arc(R*.45,0,R*.32,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
-    // Armor bands
-    ctx.strokeStyle=body;ctx.lineWidth=1.2;ctx.globalAlpha=0.4;
-    ctx.beginPath();ctx.arc(0,0,R*.65,Math.PI*0.3,Math.PI*1.7);ctx.stroke();
-    ctx.globalAlpha=1;
-
-  } else { // level 7 — OMEGA — crown of stars
-    // Main hull
-    ctx.beginPath();ctx.moveTo(R*1.5,0);ctx.lineTo(R*.9,R*.6);ctx.lineTo(R*.4,R*1.1);ctx.lineTo(-R*.3,R*1.1);ctx.lineTo(-R*.9,R*.8);ctx.lineTo(-R*1.3,R*.3);ctx.lineTo(-R*1.3,-R*.3);ctx.lineTo(-R*.9,-R*.8);ctx.lineTo(-R*.3,-R*1.1);ctx.lineTo(R*.4,-R*1.1);ctx.lineTo(R*.9,-R*.6);ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2.5;ctx.stroke();
-    // Energy ring
-    ctx.beginPath();ctx.arc(0,0,R*.75,0,Math.PI*2);ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.globalAlpha=0.5;ctx.stroke();ctx.globalAlpha=1;
-    // Cockpit glow
-    const cg=ctx.createRadialGradient(R*.45,0,0,R*.45,0,R*.38);
-    cg.addColorStop(0,'rgba(255,255,180,0.9)');cg.addColorStop(0.5,cock);cg.addColorStop(1,'transparent');
-    ctx.beginPath();ctx.arc(R*.45,0,R*.38,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
-    // Wing spikes
-    [[R*.6,R*.8],[-R*.3,R*1.0],[-R*.3,-R*1.0],[R*.6,-R*.8]].forEach(([sx,sy])=>{
-      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(sx+R*.2*Math.sign(sx),sy+R*.25*Math.sign(sy));ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    [[R*.05,-R*.68],[-R*.82,-R*.62]].forEach(([ex,ey])=>{
+      ctx.beginPath();ctx.ellipse(ex,ey,R*.18,R*.08,-0.15,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1;ctx.stroke();
     });
+    ctx.beginPath();ctx.arc(R*.45,0,R*.2,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+    
+  } else if(level===3){
+
+    // ── LV4 INTERCEPTOR — trident / delta arrow ───────────────────────────
+    // Main arrowhead
+    ctx.beginPath();ctx.moveTo(R*1.3,0);ctx.lineTo(R*.5,R*.28);ctx.lineTo(R*.1,R*.28);ctx.lineTo(-R*.7,R*.18);ctx.lineTo(-R*.85,0);ctx.lineTo(-R*.7,-R*.18);ctx.lineTo(R*.1,-R*.28);ctx.lineTo(R*.5,-R*.28);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // Trident prong upper
+    ctx.beginPath();ctx.moveTo(R*.3,R*.28);ctx.lineTo(R*.55,R*.78);ctx.lineTo(R*.38,R*.88);ctx.lineTo(R*.12,R*.38);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
+    // Trident prong lower
+    ctx.beginPath();ctx.moveTo(R*.3,-R*.28);ctx.lineTo(R*.55,-R*.78);ctx.lineTo(R*.38,-R*.88);ctx.lineTo(R*.12,-R*.38);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
+    // Prong tips glow
+    ctx.shadowColor=body;ctx.shadowBlur=6;
+    _edge(ctx,body,R*.55,R*.78,R*.38,R*.88,2.2);
+    _edge(ctx,body,R*.55,-R*.78,R*.38,-R*.88,2.2);
+    ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(R*.5,0,R*.2,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+
+  } else if(level===4){
+    // ── LV5 GUNSHIP — X-wing quad nacelle ────────────────────────────────
+
+    // Body
+    ctx.beginPath();ctx.moveTo(R*1.1,0);ctx.lineTo(R*.5,R*.22);ctx.lineTo(-R*.6,R*.3);ctx.lineTo(-R*.85,0);ctx.lineTo(-R*.6,-R*.3);ctx.lineTo(R*.5,-R*.22);ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // 4 swept wing struts
+    [1,-1].forEach(s=>{
+      // outer wing
+      ctx.beginPath();ctx.moveTo(R*.2,s*R*.22);ctx.lineTo(R*.4,s*R*.65);ctx.lineTo(-R*.2,s*R*.85);ctx.lineTo(-R*.55,s*R*.65);ctx.lineTo(-R*.55,s*R*.3);ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.4;ctx.stroke();
+      // nacelle tip spike
+      ctx.shadowColor=body;ctx.shadowBlur=5;
+      _edge(ctx,body,-R*.2,s*R*.85,-R*.35,s*R*1.0,2);
+      ctx.shadowBlur=0;
+      // engine ellipse
+      ctx.beginPath();ctx.ellipse(-R*.05,s*R*.72,R*.22,R*.09,s*0.25,0,Math.PI*2);
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1;ctx.stroke();
+    });
+    ctx.beginPath();ctx.arc(R*.3,0,R*.22,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+
+  } else if(level===5){
+  
+    // ── LV6 WARBIRD — arrowhead with swept scythe wings ──────────────────
+    // Razor fuselage — very thin and long
+    ctx.beginPath();
+    ctx.moveTo(R*1.6,0);ctx.lineTo(R*.2,R*.12);ctx.lineTo(-R*1.15,R*.18);
+    ctx.lineTo(-R*1.28,0);ctx.lineTo(-R*1.15,-R*.18);ctx.lineTo(R*.2,-R*.12);
+    ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // Twin scythe wings — curved, swept forward then back
+    [1,-1].forEach(s=>{
+      ctx.beginPath();
+      ctx.moveTo(R*.8,s*R*.12);
+      ctx.bezierCurveTo(R*1.1,s*R*.5, R*.4,s*R*1.0, -R*.1,s*R*1.1);
+      ctx.lineTo(-R*.6,s*R*.85);
+      ctx.bezierCurveTo(-R*.2,s*R*.7, R*.3,s*R*.45, R*.4,s*R*.12);
+      ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.6;ctx.stroke();
+      // Razor tip
+      ctx.shadowColor=body;ctx.shadowBlur=10;
+      _edge(ctx,body,-R*.1,s*R*1.1,-R*.22,s*R*1.28,3);
+      ctx.shadowBlur=0;
+    });
+    // Glowing engine stripe
+    ctx.shadowColor=cock;ctx.shadowBlur=8;
+    _edge(ctx,cock,R*1.6,0,-R*1.28,0,1.2);
+    ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(R*.6,0,R*.18,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+
+  } else if(level===6){
+  
+    // ── LV7 DREADNOUGHT — delta fortress with massive swept delta wings ───
+    // Narrow central spine
+    ctx.beginPath();
+    ctx.moveTo(R*1.8,0);ctx.lineTo(R*.4,R*.2);ctx.lineTo(-R*1.1,R*.28);
+    ctx.lineTo(-R*1.35,0);ctx.lineTo(-R*1.1,-R*.28);ctx.lineTo(R*.4,-R*.2);
+    ctx.closePath();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // Giant swept delta wings — the main visual
+    [1,-1].forEach(s=>{
+      ctx.beginPath();
+      ctx.moveTo(R*1.0,s*R*.2);
+      ctx.lineTo(R*1.2,s*R*.55);
+      ctx.lineTo(R*.3,s*R*1.35); // sharp outer tip
+      ctx.lineTo(-R*.6,s*R*1.45); // rear tip
+      ctx.lineTo(-R*1.1,s*R*.85);
+      ctx.lineTo(-R*1.1,s*R*.28);
+      ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+      // Wing leading edge glow
+      ctx.shadowColor=body;ctx.shadowBlur=12;
+      _edge(ctx,body,R*1.0,s*R*.2,R*1.2,s*R*.55,2);
+      _edge(ctx,body,R*1.2,s*R*.55,R*.3,s*R*1.35,2.5);
+      _edge(ctx,body,R*.3,s*R*1.35,-R*.6,s*R*1.45,2);
+      ctx.shadowBlur=0;
+      // Rear serrated edge marks
+      ctx.globalAlpha=0.45;
+      _edge(ctx,body,-R*.3,s*R*1.2,-R*.5,s*R*1.0,1.2);
+      _edge(ctx,body,-R*.1,s*R*1.3,-R*.35,s*R*1.1,1.2);
+      ctx.globalAlpha=1;
+    });
+    // Cross brace
+    _edge(ctx,body,R*.8,0,-R*1.1,0,1);
+    // Cockpit
+    const cg6=ctx.createRadialGradient(R*.6,0,0,R*.6,0,R*.28);
+    cg6.addColorStop(0,'rgba(255,255,200,0.95)');cg6.addColorStop(0.6,cock);cg6.addColorStop(1,'transparent');
+    ctx.beginPath();ctx.arc(R*.6,0,R*.28,0,Math.PI*2);ctx.fillStyle=cg6;ctx.fill();
+
+  } else if(level===7||level===8||level===9){
+
+    // ── LV8 OMEGA (base shape) — used for both variants briefly ──────────
+    // Shown only until variant selected, or for bots
+    const isAlpha=level===8;
+    const isBeta=level===9;
+    const pulseR=isAlpha?R*1.55:R*1.35;
+
+    if(isAlpha){
+      // OMEGA ALPHA — Dyson Sphere + massive swept grand wings
+      // Central lance hull (long and imposing)
+      ctx.beginPath();
+      ctx.moveTo(R*2.2,0);ctx.lineTo(R*.6,R*.25);ctx.lineTo(-R*1.6,R*.38);
+      ctx.lineTo(-R*2.2,0);ctx.lineTo(-R*1.6,-R*.38);ctx.lineTo(R*.6,-R*.25);
+      ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2.5;ctx.stroke();
+      // MASSIVE swept grand wings — the hallmark of alpha
+      [1,-1].forEach(s=>{
+        ctx.beginPath();
+        ctx.moveTo(R*1.4,s*R*.25);
+        ctx.lineTo(R*1.8,s*R*.7);
+        ctx.lineTo(R*.6,s*R*1.8);  // huge outer tip
+        ctx.lineTo(-R*.5,s*R*2.1); // swept rear point
+        ctx.lineTo(-R*1.5,s*R*1.5);
+        ctx.lineTo(-R*2.0,s*R*.55);
+        ctx.lineTo(-R*1.6,s*R*.38);
+        ctx.closePath();
+        ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+        // Glowing leading edges
+        ctx.shadowColor=body;ctx.shadowBlur=14;
+        _edge(ctx,body,R*1.4,s*R*.25,R*1.8,s*R*.7,2.5);
+        _edge(ctx,body,R*1.8,s*R*.7,R*.6,s*R*1.8,3);
+        _edge(ctx,body,R*.6,s*R*1.8,-R*.5,s*R*2.1,2.5);
+        ctx.shadowBlur=0;
+        // Wing section markings
+        ctx.globalAlpha=0.35;
+        _edge(ctx,body,R*1.0,s*R*.6,R*.0,s*R*1.4,1.2);
+        _edge(ctx,body,R*.2,s*R*1.6,-R*.8,s*R*1.6,1.2);
+        ctx.globalAlpha=1;
+      });
+      // Dyson sphere rings (3 ellipses at different angles)
+      ctx.globalAlpha=0.65;
+      [[0,R*1.0,R*.4],[0.55,R*.88,R*.32],[-0.55,R*.88,R*.32]].forEach(([tilt,rx,ry])=>{
+        ctx.beginPath();ctx.ellipse(0,0,rx,ry,tilt,0,Math.PI*2);ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+      });
+      ctx.globalAlpha=1;
+      // Pulsing energy core
+      const ecol=`rgba(180,80,255,${0.6+0.35*Math.sin(animT*3)})`;
+      const eg=ctx.createRadialGradient(0,0,0,0,0,R*.5);
+      eg.addColorStop(0,'rgba(255,200,255,0.95)');eg.addColorStop(0.5,ecol);eg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(0,0,R*.5,0,Math.PI*2);ctx.fillStyle=eg;ctx.fill();
+      // Spine glow line
+      ctx.shadowColor='rgba(180,80,255,0.9)';ctx.shadowBlur=18;
+      _edge(ctx,body,R*2.2,0,-R*2.2,0,2);
+      ctx.shadowBlur=0;
+      // Forward lance tip
+      ctx.shadowColor=body;ctx.shadowBlur=14;
+      _edge(ctx,body,R*2.0,0,R*2.25,0,4);
+      ctx.shadowBlur=0;
+
+    } else if(isBeta){
+      // OMEGA BETA — speed hunter, swept delta + twin side blades
+      // Core dart
+      ctx.beginPath();ctx.moveTo(R*1.6,0);ctx.lineTo(R*.3,R*.18);ctx.lineTo(-R*1.2,R*.25);ctx.lineTo(-R*1.35,0);ctx.lineTo(-R*1.2,-R*.25);ctx.lineTo(R*.3,-R*.18);ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+      // Twin razor side blades
+      [1,-1].forEach(s=>{
+        ctx.beginPath();ctx.moveTo(R*.6,s*R*.18);ctx.lineTo(R*.9,s*R*.9);ctx.lineTo(-R*.2,s*R*1.15);ctx.lineTo(-R*.8,s*R*.8);ctx.lineTo(-R*1.2,s*R*.25);ctx.closePath();
+        ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.8;ctx.stroke();
+        // blade tip spikes
+        ctx.shadowColor=body;ctx.shadowBlur=10;
+        _edge(ctx,body,R*.9,s*R*.9,R*1.05,s*R*1.05,2.5);
+        _edge(ctx,body,-R*.2,s*R*1.15,-R*.25,s*R*1.32,2.5);
+        ctx.shadowBlur=0;
+      });
+      // Pulsing elongated cockpit
+      const bg=ctx.createLinearGradient(R*1.6,0,-R*1.2,0);
+      bg.addColorStop(0,'rgba(255,255,255,0.0)');bg.addColorStop(0.3,'rgba(100,220,255,0.8)');bg.addColorStop(0.6,cock);bg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.ellipse(R*.25,0,R*.85,R*.13,0,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
+      // Speed streak lines
+      ctx.globalAlpha=0.3;ctx.strokeStyle=body;ctx.lineWidth=0.8;
+      for(let i=-1;i<=1;i++) _edge(ctx,body,R*.5,i*R*.08,-R*1.3,i*R*.08,0.7);
+      ctx.globalAlpha=1;
+
+    } else {
+      // Level 7 placeholder — shown when reaching lv7 but before omega pick
+      // Same as dreadnought but with purple glow
+      ctx.beginPath();ctx.moveTo(R*1.5,0);ctx.lineTo(R*.8,R*.5);ctx.lineTo(-R*.2,R*1.0);ctx.lineTo(-R*1.0,R*.7);ctx.lineTo(-R*1.3,0);ctx.lineTo(-R*1.0,-R*.7);ctx.lineTo(-R*.2,-R*1.0);ctx.lineTo(R*.8,-R*.5);ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle='rgba(180,80,255,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+      // Pulsing omega ring
+      ctx.globalAlpha=0.5+0.3*Math.sin(animT*4);ctx.strokeStyle='rgba(200,100,255,0.8)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(0,0,R*.85,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=1;
+      const cg7=ctx.createRadialGradient(R*.4,0,0,R*.4,0,R*.35);
+      cg7.addColorStop(0,'rgba(255,200,255,0.9)');cg7.addColorStop(0.6,cock);cg7.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(R*.4,0,R*.35,0,Math.PI*2);ctx.fillStyle=cg7;ctx.fill();
+    }
   }
   ctx.restore();
 }
 
 // ─── ASTEROID GENERATION ──────────────────────────────────────────────────────
-function createAsteroid(forced){
+// pts: 3–30 (random), hp = pts * 20 (so a 3-pt rock needs 60 dmg, 30-pt needs 600)
+// size scales proportionally with pts so big rocks look big
+function createAsteroid(){
   const R=CFG.PLAYER_RADIUS;
-  // Vary size: small ~0.5R, medium ~R, large ~1.8R
-  const tier=Math.random(); // 0=large,1=med,2=small
-  let size,pts,hp;
-  if(tier<0.25){size=R*1.6+Math.random()*R*.8;pts=3;hp=3;}      // large
-  else if(tier<0.6){size=R*0.9+Math.random()*R*.5;pts=2;hp=2;}   // medium
-  else{size=R*0.4+Math.random()*R*.4;pts=1;hp=1;}                // small
+  // pts: weighted so small asteroids are more common
+  // ~50% chance 3-8, ~35% chance 9-18, ~15% chance 19-30
+  let pts;
+  const roll=Math.random();
+  if(roll<0.50) pts=3+Math.floor(Math.random()*6);       // 3–8
+  else if(roll<0.85) pts=9+Math.floor(Math.random()*10); // 9–18
+  else pts=19+Math.floor(Math.random()*12);              // 19–30
+
+  const maxHp=pts*20; // 60 – 600 total damage needed
+  const hp=maxHp;
+
+  // Size: linearly interpolate from 0.45R (3pts) to 2.8R (30pts)
+  const t=(pts-3)/27; // 0 at 3pts, 1 at 30pts
+  const size=R*(0.45+t*2.35)*(0.85+Math.random()*0.3);
+
+  // Speed: big rocks move slower
+  const speed=(30-t*22)+Math.random()*15;
+
   const pos=randPos(200);
-  // Random polygon shape offsets
   const sides=6+Math.floor(Math.random()*5);
   const verts=[];
   for(let i=0;i<sides;i++){
     const a=(i/sides)*Math.PI*2;
-    const r=size*(0.75+Math.random()*0.5);
+    const r=size*(0.72+Math.random()*0.52);
     verts.push([Math.cos(a)*r,Math.sin(a)*r]);
   }
-  const speed=8+Math.random()*28;
   const dir=Math.random()*Math.PI*2;
   return {
     id:nextId++,
     x:pos.x,y:pos.y,
     vx:Math.cos(dir)*speed,vy:Math.sin(dir)*speed,
-    rot:Math.random()*Math.PI*2, rotSpeed:(Math.random()-.5)*0.6,
-    size,pts,hp,maxHp:hp, verts,
+    rot:Math.random()*Math.PI*2, rotSpeed:(Math.random()-.5)*(0.8-t*0.6),
+    size,pts,hp,maxHp, verts,
     pulse:Math.random()*Math.PI*2,
   };
+}
+
+function spawnWorldStars(){
+  GS.worldStars=[];
+  const M=CFG.MAP_SIZE;
+  const count=Math.floor(M*M/18000); // ~density
+  const capped=Math.min(count,8000);
+  for(let i=0;i<capped;i++){
+    GS.worldStars.push({
+      x:Math.random()*M, y:Math.random()*M,
+      r:0.4+Math.random()*1.6,
+      a:0.15+Math.random()*0.7,
+      twinkle:Math.random()<0.25,
+      tp:Math.random()*Math.PI*2,
+      ts:0.5+Math.random()*2,
+      tint:Math.random()<0.15, // some have a slight blue/gold tint
+    });
+  }
 }
 
 function spawnAsteroids(){
@@ -655,7 +973,8 @@ function createPlayer(username,team){
 
 function createBot(team){
   const s=createShipBase(nextId++,pickName(),team);
-  s._ai={state:'patrol',patrolAngle:Math.random()*Math.PI*2,stateTimer:0,currentTarget:null,fleeTimer:0,respawnTimer:0};
+  s._ai={state:'mine',patrolAngle:Math.random()*Math.PI*2,stateTimer:0,currentTarget:null,fleeTimer:0,respawnTimer:0,combatTarget:null,combatLockTimer:0};
+  s.lives=(gameMode==='battleroyal')?CFG.MAX_LIVES:Infinity;
   return s;
 }
 
@@ -674,19 +993,38 @@ function respawnAmmoPickup(idx){
 
 // ─── LEVEL UP ─────────────────────────────────────────────────────────────────
 function checkLevelUp(ship){
+  // Don't auto-upgrade omega variants (8/9)
+  if(ship.level>=8) return;
+  // Don't re-trigger omega picker if already pending
+  if(ship._pendingOmega) return;
+
   let newLevel=ship.level;
-  for(let i=LEVELS.length-1;i>=0;i--){
+  // Only check up to level 7 (index 7) from LEVELS — 8/9 are omega variants
+  for(let i=7;i>=0;i--){
     if(ship.score>=LEVELS[i].pts){ newLevel=i; break; }
   }
-  if(newLevel>ship.level){
-    const old=ship.level;
-    ship.level=newLevel;
-    const lv=LEVELS[newLevel];
-    const hpRatio=ship.hp/ship.maxHp;
-    ship.maxHp=lv.maxHp;
-    ship.hp=Math.min(ship.maxHp,ship.maxHp*hpRatio+20);
-    if(ship.isPlayer){
+  if(newLevel<=ship.level) return;
+
+  ship.level=newLevel;
+  const lv=LEVELS[newLevel];
+  const hpRatio=ship.hp/ship.maxHp;
+  ship.maxHp=lv.maxHp;
+  ship.hp=Math.min(ship.maxHp,ship.maxHp*hpRatio+20);
+
+  if(ship.isPlayer){
+    if(newLevel===7){
+      showOmegaPicker(ship);
+      ship.level=6; // hold at dreadnought until variant chosen
+    } else {
       flashUpgrade(lv.desc,newLevel+1);
+    }
+  } else {
+    // Bot auto-picks omega variant randomly
+    if(newLevel===7){
+      ship.level=Math.random()<0.5?8:9;
+      const lv2=LEVELS[ship.level];
+      ship.maxHp=lv2.maxHp;
+      ship.hp=Math.min(ship.maxHp,ship.hp+80);
     }
   }
 }
@@ -699,42 +1037,110 @@ function flashUpgrade(desc,lv){
   el.classList.add('show');
 }
 
+function showOmegaPicker(ship){
+  const el=document.getElementById('omega-picker');
+  if(el){el.style.display='flex';}
+  // Pause shooting but not movement
+  ship._pendingOmega=true;
+}
+function selectOmega(ship,variant){
+  // variant: 8=alpha, 9=beta
+  ship.level=variant;
+  const lv=LEVELS[variant];
+  ship.maxHp=lv.maxHp;
+  ship.hp=Math.min(ship.maxHp,ship.hp+80);
+  ship._pendingOmega=false;
+  const el=document.getElementById('omega-picker');
+  if(el)el.style.display='none';
+  flashUpgrade(lv.desc,8);
+}
+
 // ─── BULLET SPAWN ─────────────────────────────────────────────────────────────
 function spawnBullets(owner){
-  const lv=LEVELS[owner.level||0];
+  const lv=LEVELS[Math.min(owner.level||0,LEVELS.length-1)];
   const mode=lv.bulletMode;
   const R=CFG.PLAYER_RADIUS;
   const tip=R+4;
-  function mkBullet(ax,ay,angle){
+
+  function mkBullet(ax,ay,angle,dmgOverride,radOverride,lvOverride){
+    const bdmg=dmgOverride??lv.bulletDmg;
+    const brad=radOverride??lv.bulletR;
+    const blv=lvOverride??owner.level??0;
     GS.bullets.push({
       id:nextId++,ownerId:owner.id,ownerTeam:owner.team??-1,
       x:ax,y:ay,
       vx:Math.cos(angle)*CFG.BULLET_SPEED+owner.vx*.3,
       vy:Math.sin(angle)*CFG.BULLET_SPEED+owner.vy*.3,
       lifetime:CFG.BULLET_LIFETIME,
-      dmg:lv.bulletDmg, radius:lv.bulletR,
-      level:owner.level||0,
+      dmg:bdmg, radius:brad, level:blv,
     });
+    // Pushback — larger bullets push the shooter back
+    const pushForce=brad*2.2;
+    owner.vx-=Math.cos(angle)*pushForce;
+    owner.vy-=Math.sin(angle)*pushForce;
   }
+
   const cx=owner.x+Math.cos(owner.angle)*tip;
   const cy=owner.y+Math.sin(owner.angle)*tip;
   const a=owner.angle;
+  const perp=a+Math.PI/2;
+
   if(mode==='single'){
     mkBullet(cx,cy,a);
+
   } else if(mode==='double'){
     const off=7;
-    mkBullet(cx+Math.cos(a+Math.PI/2)*off,cy+Math.sin(a+Math.PI/2)*off,a);
-    mkBullet(cx+Math.cos(a-Math.PI/2)*off,cy+Math.sin(a-Math.PI/2)*off,a);
-  } else if(mode==='heavy'||mode==='plasma'||mode==='nova'){
+    mkBullet(cx+Math.cos(perp)*off,cy+Math.sin(perp)*off,a);
+    mkBullet(cx-Math.cos(perp)*off,cy-Math.sin(perp)*off,a);
+
+  } else if(mode==='heavy'){
     mkBullet(cx,cy,a);
+
   } else if(mode==='triple'){
     mkBullet(cx,cy,a);
     mkBullet(cx,cy,a+0.18);
     mkBullet(cx,cy,a-0.18);
+
   } else if(mode==='burst'){
-    for(let i=0;i<3;i++) setTimeout(()=>{ if(!owner.alive)return; mkBullet(owner.x+Math.cos(owner.angle)*tip,owner.y+Math.sin(owner.angle)*tip,owner.angle); },i*60);
+    for(let i=0;i<3;i++) setTimeout(()=>{
+      if(!owner.alive)return;
+      mkBullet(owner.x+Math.cos(owner.angle)*tip,owner.y+Math.sin(owner.angle)*tip,owner.angle);
+    },i*60);
+
   } else if(mode==='spread'){
     for(let i=-2;i<=2;i++) mkBullet(cx,cy,a+i*0.12);
+
+  } else if(mode==='plasma'){
+    mkBullet(cx,cy,a);
+
+  } else if(mode==='nova'){
+    // LV7 base omega placeholder — big single + 2 rear exhaust mini-bullets at 45deg back
+    mkBullet(cx,cy,a);
+    const back=a+Math.PI;
+    const rx=owner.x+Math.cos(back)*tip*0.7;const ry=owner.y+Math.sin(back)*tip*0.7;
+    mkBullet(rx+Math.cos(perp)*10,ry+Math.sin(perp)*10,back+Math.PI/4,8,2.5,1);
+    mkBullet(rx-Math.cos(perp)*10,ry-Math.sin(perp)*10,back-Math.PI/4,8,2.5,1);
+
+  } else if(mode==='omega_alpha'){
+    // ALPHA — one massive slow round
+    mkBullet(cx,cy,a,lv.bulletDmg,lv.bulletR,8);
+    // + 2 rear exhaust micro-bullets at 45deg
+    const back=a+Math.PI;
+    const rx=owner.x+Math.cos(back)*tip*0.6,ry=owner.y+Math.sin(back)*tip*0.6;
+    mkBullet(rx+Math.cos(perp)*12,ry+Math.sin(perp)*12,back+Math.PI/4,6,2,7);
+    mkBullet(rx-Math.cos(perp)*12,ry-Math.sin(perp)*12,back-Math.PI/4,6,2,7);
+
+  } else if(mode==='omega_beta'){
+    // BETA — 1 big front + 2 small parallel behind it
+    mkBullet(cx+Math.cos(a)*8,cy+Math.sin(a)*8,a,lv.bulletDmg,lv.bulletR,9);
+    const off2=9;
+    mkBullet(cx+Math.cos(perp)*off2,cy+Math.sin(perp)*off2,a,Math.floor(lv.bulletDmg*.4),Math.floor(lv.bulletR*.5),9);
+    mkBullet(cx-Math.cos(perp)*off2,cy-Math.sin(perp)*off2,a,Math.floor(lv.bulletDmg*.4),Math.floor(lv.bulletR*.5),9);
+    // + 2 rear exhaust micro-bullets at 45deg
+    const back=a+Math.PI;
+    const rx=owner.x+Math.cos(back)*tip*0.6,ry=owner.y+Math.sin(back)*tip*0.6;
+    mkBullet(rx+Math.cos(perp)*12,ry+Math.sin(perp)*12,back+Math.PI/4,6,2,7);
+    mkBullet(rx-Math.cos(perp)*12,ry-Math.sin(perp)*12,back-Math.PI/4,6,2,7);
   }
 }
 
@@ -755,6 +1161,26 @@ const Input={
     if(!document.getElementById('settings-overlay').classList.contains('hidden'))return;
     if(!document.getElementById('esc-overlay').classList.contains('hidden')){if(Binds.idFor(e.code)==='escMenu'){EscMenu.close();e.preventDefault();}return;}
     if(gameRunning&&Binds.idFor(e.code)==='escMenu'){EscMenu.open();e.preventDefault();return;}
+    // Bomb drop — R key
+    if(gameRunning&&Binds.idFor(e.code)==='bomb'&&GS.player&&GS.player.alive&&!GS.over){
+      if(playerBombCd<=0){
+        GS.bombs.push({id:nextId++,x:GS.player.x,y:GS.player.y,timer:10,age:0,radius:22,ownerId:GS.player.id});
+        playerBombCd=30;
+      }
+      e.preventDefault();
+      return;
+    }
+    // Dev mode shortcuts
+    if(devMode&&gameRunning&&GS.player&&!GS.over){
+      if(e.code==='KeyP'){
+        GS.score+=100;GS.player.score+=100;checkLevelUp(GS.player);
+        UI.updateHUD();e.preventDefault();return;
+      }
+      if(e.code==='KeyX'){
+        GS.bots.forEach(b=>{b.alive=false;b._ai.respawnTimer=999999;});
+        UI.addKillFeed('[DEV]','ALL BOTS');e.preventDefault();return;
+      }
+    }
     this._apply(e.code,true,e);
   },
   _up(e){this._apply(e.code,false,e);},
@@ -780,7 +1206,6 @@ const Input={
 
 // ─── PHYSICS / GAME TICK ──────────────────────────────────────────────────────
 let lastTickTime=0;
-let lastPlayerShoot=false;
 
 function tickGame(now){
   if(!gameRunning||GS.over)return;
@@ -804,7 +1229,15 @@ function tickGame(now){
       const dir=(Input.arrowRight?1:0)+(Input.arrowLeft?-1:0);
       p.angle+=dir*Math.PI*4*dt;p.angle=((p.angle+Math.PI)%(Math.PI*2))-Math.PI;
       Input.mouseAngle=p.angle;
-    } else p.angle=Input.mouseAngle;
+    } else {
+      // Omega Alpha: cap mouse turn speed to 720 deg/s = 4π rad/s
+      if(p.level===8){
+        const maxTurn=Math.PI*4*dt;
+        const diff=angleDiff(p.angle,Input.mouseAngle);
+        const step=Math.sign(diff)*Math.min(Math.abs(diff),maxTurn);
+        p.angle+=step;p.angle=((p.angle+Math.PI)%(Math.PI*2))-Math.PI;
+      } else p.angle=Input.mouseAngle;
+    }
 
     const wantBoost=Input.keys.boost&&p.boostFuel>0;
     p.boosting=wantBoost;
@@ -812,7 +1245,8 @@ function tickGame(now){
     else{if(p.boostRechargeTimer>0)p.boostRechargeTimer-=dt;else p.boostFuel=Math.min(CFG.BOOST_MAX,p.boostFuel+CFG.BOOST_RECHARGE*dt);}
 
     const bm=wantBoost?CFG.BOOST_SPEED_MULT:1;
-    const effSpd=CFG.PLAYER_SPEED*bm;
+    const betaBoost=p.level===9?1.35:1.0;
+    const effSpd=CFG.PLAYER_SPEED*bm*betaBoost;
 
     if(Input.keys.up){p.vx+=Math.cos(p.angle)*effSpd*dt*2.5;p.vy+=Math.sin(p.angle)*effSpd*dt*2.5;Particles.emitThrust(p,wantBoost);}
     if(Input.keys.sideLeft||Input.keys.sideRight){const dir=Input.keys.sideRight?1:-1;p.vx+=(-Math.sin(p.angle))*dir*CFG.SIDE_THRUST_SPEED*dt*4;p.vy+=(Math.cos(p.angle))*dir*CFG.SIDE_THRUST_SPEED*dt*4;Particles.emitSide(p,dir);}
@@ -823,25 +1257,32 @@ function tickGame(now){
     // Map border — mode-dependent
     let nx=p.x+p.vx*dt, ny=p.y+p.vy*dt;
     const M=CFG.MAP_SIZE;
+    // Always tick down border cooldown
+    if(GS.borderCrossTimer>0) GS.borderCrossTimer=Math.max(0,GS.borderCrossTimer-dt);
     if(gameMode==='takeover'){
-      // Hard walls — no crossing
+      // Hard walls — no crossing at all
       if(nx<CFG.PLAYER_RADIUS){nx=CFG.PLAYER_RADIUS;p.vx=Math.abs(p.vx)*0.3;}
       if(nx>M-CFG.PLAYER_RADIUS){nx=M-CFG.PLAYER_RADIUS;p.vx=-Math.abs(p.vx)*0.3;}
       if(ny<CFG.PLAYER_RADIUS){ny=CFG.PLAYER_RADIUS;p.vy=Math.abs(p.vy)*0.3;}
       if(ny>M-CFG.PLAYER_RADIUS){ny=M-CFG.PLAYER_RADIUS;p.vy=-Math.abs(p.vy)*0.3;}
       p.x=nx;p.y=ny;
+    } else if(gameMode==='ffa'){
+      // FFA: free wrap, no cooldown ever
+      p.x=((nx%M)+M)%M; p.y=((ny%M)+M)%M;
     } else {
-      // BR and Teams: wrap with 10s cooldown
-      const crossed=(nx<0||nx>M||ny<0||ny>M);
-      if(GS.borderCrossTimer>0) GS.borderCrossTimer-=dt;
+      // BR and Teams: wrap allowed only when cooldown is 0
+      const atEdgeX=(nx<0||nx>=M);
+      const atEdgeY=(ny<0||ny>=M);
+      const crossed=atEdgeX||atEdgeY;
       if(crossed&&GS.borderCrossTimer<=0){
+        // Wrap and start cooldown
         p.x=((nx%M)+M)%M;p.y=((ny%M)+M)%M;
         GS.borderCrossTimer=CFG.BORDER_CROSS_COOLDOWN;
       } else if(crossed&&GS.borderCrossTimer>0){
-        // Blocked — bounce softly
-        if(nx<0||nx>M){p.vx*=-0.4;nx=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.x));}
-        if(ny<0||ny>M){p.vy*=-0.4;ny=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.y));}
-        p.x=nx;p.y=ny;
+        // Blocked by cooldown — push back hard
+        if(atEdgeX){p.vx*=-0.5;nx=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.x));}
+        if(atEdgeY){p.vy*=-0.5;ny=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.y));}
+        p.x=Math.max(0,Math.min(M,nx));p.y=Math.max(0,Math.min(M,ny));
       } else {
         p.x=nx;p.y=ny;
       }
@@ -851,16 +1292,14 @@ function tickGame(now){
     if(p.hp<p.maxHp&&(nowSec-p.lastDamageTime)>=CFG.REGEN_DELAY)
       p.hp=Math.min(p.maxHp,p.hp+CFG.REGEN_RATE*dt);
 
-    // Shooting
-    const lv=LEVELS[p.level||0];
+    // Shooting — cooldown-gated, no edge-trigger (works while moving)
+    const lv=LEVELS[Math.min(p.level||0,LEVELS.length-1)];
     if(p.shootCooldown>0) p.shootCooldown-=dt;
-    const wantShoot=Input.keys.shoot&&p.shootCooldown<=0&&p.ammo>0;
-    if(wantShoot&&!lastPlayerShoot){
+    if(Input.keys.shoot&&p.shootCooldown<=0&&p.ammo>0&&!p._pendingOmega){
       spawnBullets(p);
       p.ammo=Math.max(0,p.ammo-1);
       p.shootCooldown=lv.shootCd;
     }
-    lastPlayerShoot=Input.keys.shoot;
 
     // Level up check
     checkLevelUp(p);
@@ -871,12 +1310,15 @@ function tickGame(now){
   // ── BOTS ────────────────────────────────────────────────────────────────
   for(const bot of GS.bots){
     if(!bot.alive){
-      bot._ai.respawnTimer-=dt;
-      if(bot._ai.respawnTimer<=0){
-        const rp=randPos(300);bot.x=rp.x;bot.y=rp.y;bot.vx=0;bot.vy=0;
-        bot.hp=bot.maxHp;bot.alive=true;bot.invuln=CFG.RESPAWN_INVULN;
-        bot.shootCooldown=0;bot.lastDamageTime=-999;
-        bot._ai.state='patrol';bot._ai.fleeTimer=0;
+      if(bot.lives===undefined) bot.lives=Infinity;
+      if(bot.lives>0){
+        bot._ai.respawnTimer-=dt;
+        if(bot._ai.respawnTimer<=0){
+          const rp=randPos(300);bot.x=rp.x;bot.y=rp.y;bot.vx=0;bot.vy=0;
+          bot.hp=bot.maxHp;bot.alive=true;bot.invuln=CFG.RESPAWN_INVULN;
+          bot.shootCooldown=0;bot.lastDamageTime=-999;
+          bot._ai.state='patrol';bot._ai.fleeTimer=0;
+        }
       }
       continue;
     }
@@ -901,7 +1343,9 @@ function tickGame(now){
           target.hp=0;target.alive=false;
           Particles.emitExplosion(target.x,target.y);
           if(target.isPlayer){
-            GS.deaths++;GS.lives--;
+            GS.deaths++;
+            if(gameMode!=='ffa') GS.lives--;
+            else{GS.lives=99;GS.score=0;p.score=0;} // FFA: infinite respawns, lose score
             deathLingerTimer=3;UI.startDeathLinger();
           } else {
             const killer=allShips.find(s=>s.id===b.ownerId);
@@ -909,7 +1353,9 @@ function tickGame(now){
               killer.kills++;killer.score+=50;
               if(killer.isPlayer){GS.kills++;GS.score+=50;checkLevelUp(p);}
             }
-            target._ai.respawnTimer=CFG.ENEMY_RESPAWN_TIME;
+            if(target.lives===undefined) target.lives=Infinity;
+            if(target.lives!==Infinity) target.lives--;
+            target._ai.respawnTimer=(target.lives>0)?CFG.ENEMY_RESPAWN_TIME:999999;
             UI.addKillFeed(killer?.username,target.username);
           }
           checkWinCondition();
@@ -918,35 +1364,47 @@ function tickGame(now){
       }
     }
 
-    // Check asteroids
+    // Check enemy safes (takeover only)
+    if(gameMode==='takeover'){
+      for(const safe of GS.safes){
+        if(safe.hp<=0) continue;
+        // Only enemy team bullets damage a safe
+        if(b.ownerTeam===safe.team) continue; // friendly fire on own safe blocked
+        if(b.ownerTeam===-1) continue; // neutral can't damage safes
+        if(Math.hypot(safe.x-b.x,safe.y-b.y)<safe.radius+b.radius){
+          safe.hp=Math.max(0,safe.hp-b.dmg);
+          Particles.emitHit(b.x,b.y,safe.team===0?'#00d4ff':'#ff4060');
+          return false;
+        }
+      }
+    }
+
+    // Check asteroids — hp = pts*20, bullets chip away with b.dmg
     for(let ai=0;ai<GS.asteroids.length;ai++){
       const ast=GS.asteroids[ai];
       if(Math.hypot(ast.x-b.x,ast.y-b.y)<ast.size+b.radius){
-        ast.hp-=b.dmg;
+        ast.hp-=b.dmg*1.5; // asteroids take 1.5x bullet damage
         Particles.emitAsteroidHit(b.x,b.y,ast.size);
         if(ast.hp<=0){
-          // Award points to bullet owner
           const killer=allShips.find(s=>s.id===b.ownerId);
-          if(killer){
-            killer.score+=ast.pts;
-            if(killer.isPlayer){GS.score+=ast.pts;checkLevelUp(p);}
-          }
-          // Spawn smaller shards
-          if(ast.size>CFG.PLAYER_RADIUS*0.6){
-            const shards=Math.floor(1+Math.random()*2);
+          if(killer){killer.score+=ast.pts;if(killer.isPlayer){GS.score+=ast.pts;checkLevelUp(p);}}
+          // Spawn shards from high-value rocks only (pts>=10)
+          if(ast.pts>=10){
+            const shards=1+Math.floor(Math.random()*2);
             for(let s=0;s<shards;s++){
-              const na=createAsteroid();
-              na.x=ast.x+(Math.random()-.5)*ast.size*2;
-              na.y=ast.y+(Math.random()-.5)*ast.size*2;
-              na.size=ast.size*0.45*(0.8+Math.random()*0.4);
-              na.pts=Math.max(1,ast.pts-1);
-              na.hp=1;na.maxHp=1;
-              GS.asteroids.push(na);
+              const sp=Math.max(3,Math.floor(ast.pts*0.3*(0.6+Math.random()*0.8)));
+              const smhp=sp*20;
+              const st=(sp-3)/27;
+              const ssz=CFG.PLAYER_RADIUS*(0.45+st*2.35)*(0.85+Math.random()*0.3);
+              const ssides=5+Math.floor(Math.random()*4);
+              const sv=[];
+              for(let vi=0;vi<ssides;vi++){const va=(vi/ssides)*Math.PI*2;sv.push([Math.cos(va)*ssz*(0.72+Math.random()*0.52),Math.sin(va)*ssz*(0.72+Math.random()*0.52)]);}
+              const sd=Math.random()*Math.PI*2,ss2=20+Math.random()*40;
+              GS.asteroids.push({id:nextId++,x:ast.x+(Math.random()-.5)*ast.size*1.5,y:ast.y+(Math.random()-.5)*ast.size*1.5,vx:Math.cos(sd)*ss2,vy:Math.sin(sd)*ss2,rot:Math.random()*Math.PI*2,rotSpeed:(Math.random()-.5)*0.8,size:ssz,pts:sp,hp:smhp,maxHp:smhp,verts:sv,pulse:Math.random()*Math.PI*2});
             }
           }
           Particles.emitExplosion(ast.x,ast.y);
           GS.asteroids.splice(ai,1);
-          // Respawn a new asteroid after delay
           setTimeout(()=>{ if(gameRunning) GS.asteroids.push(createAsteroid()); },3000+Math.random()*5000);
         }
         return false;
@@ -965,7 +1423,9 @@ function tickGame(now){
     ast.y=((ast.y+ast.vy*dt)%M+M)%M;
     // Asteroid ramming player
     if(p.alive&&p.invuln<=0&&Math.hypot(ast.x-p.x,ast.y-p.y)<ast.size+CFG.PLAYER_RADIUS){
-      p.hp-=5*ast.hp;p.lastDamageTime=nowSec;
+      // Ram damage scales with pts (3-30), capped at 25% of player maxHp per hit
+      const ramDmg=Math.min(p.maxHp*0.25, 5+ast.pts*1.2);
+      p.hp-=ramDmg;p.lastDamageTime=nowSec;
       Particles.emitAsteroidHit(p.x,p.y,ast.size);
       const pushA=Math.atan2(p.y-ast.y,p.x-ast.x);
       p.vx+=Math.cos(pushA)*80;p.vy+=Math.sin(pushA)*80;
@@ -991,96 +1451,239 @@ function tickGame(now){
     }
   }
 
+
+  // ── BOMBS ───────────────────────────────────────────────────────────────
+  if(playerBombCd>0) playerBombCd-=dt;
+  GS.bombs=GS.bombs.filter(bm=>{
+    bm.timer-=dt; bm.age+=dt;
+    // Check proximity to all ships
+    for(const ship of allShips){
+      if(!ship.alive||ship.invuln>0) continue;
+      if(Math.hypot(ship.x-bm.x,ship.y-bm.y)<bm.radius+CFG.PLAYER_RADIUS){
+        ship.hp-=50; ship.lastDamageTime=nowSec;
+        Particles.emitExplosion(bm.x,bm.y);
+        if(ship.hp<=0){
+          ship.hp=0; ship.alive=false;
+          Particles.emitExplosion(ship.x,ship.y);
+          if(ship.isPlayer){GS.deaths++;if(gameMode!=='ffa')GS.lives--;else{GS.lives=99;GS.score=0;p.score=0;}deathLingerTimer=3;UI.startDeathLinger();}
+          else{const killer=allShips.find(s=>s.id===bm.ownerId);if(killer){killer.kills++;killer.score+=50;if(killer.isPlayer){GS.kills++;GS.score+=50;checkLevelUp(p);}}}
+          checkWinCondition();
+        }
+        return false; // bomb consumed on hit
+      }
+    }
+    if(bm.timer<=0){Particles.emitExplosion(bm.x,bm.y);return false;} // expired
+    return true;
+  });
+  // ── SAFES / TAKEOVER ────────────────────────────────────────────────────
+  if(gameMode==='takeover'&&GS.safes.length){
+    // Score trickle: players inside their OWN safe radius earn points
+    const allS=[p,...GS.bots];
+    for(const safe of GS.safes){
+      if(safe.hp<=0) continue;
+      for(const s of allS){
+        if(!s.alive) continue;
+        if(s.team===safe.team&&Math.hypot(s.x-safe.x,s.y-safe.y)<safe.radius){
+          s.score+=dt*1.5;
+          if(s.isPlayer) GS.score=Math.floor(p.score);
+        }
+      }
+    }
+    // Win check
+    const deadSafes=GS.safes.filter(s=>s.hp<=0);
+    if(deadSafes.length>0){
+      const destroyed=deadSafes[0];
+      const winner=destroyed.team===0?1:0; // enemy team wins
+      if(!GS.over){
+        if(p.team===winner) endGame(true,'ENEMY BASE DESTROYED');
+        else endGame(false,'YOUR BASE WAS DESTROYED');
+      }
+    }
+  }
+  UI.updateBombHUD();
+
   Particles.tick(dt);
   UI.updateHUD();
 }
 
 // ─── AI TICK ─────────────────────────────────────────────────────────────────
+// AI decision model:
+//   - Normally bots mine asteroids (best pts-per-distance ratio)
+//   - When a player/enemy is within range, probability of attacking scales with closeness
+//   - Close (<400): 75% attack, 25% keep mining
+//   - Medium (400-800): 45% attack
+//   - Far (800-1500): 15% attack
+//   - Very far (>1500): ~3% — rare aggression burst from distance
+//   - Once a bot commits to attacking, it sticks to that target for several seconds
 function tickAI(bot,allShips,player,dt,nowSec){
   const ai=bot._ai;
-  if(bot.invuln>0)bot.invuln-=dt;
+  if(bot.invuln>0) bot.invuln-=dt;
   ai.stateTimer-=dt;
 
-  const fleeHp=bot.maxHp*0.20,fleeRecover=bot.maxHp*0.30;
-  if(bot.hp<=fleeHp&&ai.state!=='evade'){ai.state='evade';ai.fleeTimer=4+Math.random()*3;}
+  // ── FLEE CHECK ───────────────────────────────────────────────────────────
+  const fleeHp=bot.maxHp*0.20, fleeRecover=bot.maxHp*0.35;
+  if(bot.hp<=fleeHp && ai.state!=='evade'){
+    ai.state='evade';
+    ai.fleeTimer=3+Math.random()*3;
+    ai.combatTarget=null; // drop combat when fleeing
+  }
   if(ai.state==='evade'){
     ai.fleeTimer-=dt;
-    if(ai.fleeTimer<=0&&bot.hp>=fleeRecover){ai.state='patrol';ai.stateTimer=0;}
+    if(ai.fleeTimer<=0 && bot.hp>=fleeRecover){
+      ai.state='mine'; ai.stateTimer=0; ai.combatTarget=null;
+    }
   }
 
-  // Pick target: ships + asteroids
-  let target=null,targetAst=null;
-  const enemies=allShips.filter(s=>s.alive&&s.id!==bot.id&&areEnemies(bot,s));
+  // ── COMBAT TARGET STICKINESS TIMER ──────────────────────────────────────
+  // Once a bot picks a combat target it commits for combatLockTimer seconds
+  if(ai.combatLockTimer>0) ai.combatLockTimer-=dt;
+  if(ai.combatTarget && (!ai.combatTarget.alive || ai.combatLockTimer<=0)){
+    ai.combatTarget=null; ai.combatLockTimer=0;
+  }
+
+  // ── TARGET SELECTION ────────────────────────────────────────────────────
+  let combatTarget=ai.combatTarget;
+  let mineTarget=null;
+  let goFight=false;
+
   if(ai.state!=='evade'){
-    // Find nearest enemy ship
-    if(enemies.length){
-      enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
-      target=(player.alive&&Math.random()<CFG.PLAYER_FOCUS_WEIGHT)?player:enemies[0];
+    const enemies=allShips.filter(s=>s.alive && s.id!==bot.id && areEnemies(bot,s));
+
+    // If already locked onto a combat target, check whether to keep it
+    if(combatTarget && combatTarget.alive && ai.combatLockTimer>0){
+      goFight=true;
+    } else {
+      // Evaluate nearest enemy and decide whether to engage
+      if(enemies.length){
+        enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
+        const nearest=enemies[0];
+        const distToNearest=Math.hypot(nearest.x-bot.x, nearest.y-bot.y);
+
+        // Attack probability increases as enemy gets closer
+        let attackChance;
+        if(distToNearest < 400)       attackChance=0.75;
+        else if(distToNearest < 700)  attackChance=0.45;
+        else if(distToNearest < 1200) attackChance=0.15;
+        else if(distToNearest < 2000) attackChance=0.05;
+        else                          attackChance=0.02; // rare long-range aggression
+
+        // Re-roll decision only when stateTimer expired
+        if(ai.stateTimer<=0){
+          ai.stateTimer=1.5+Math.random()*2; // re-evaluate every 1.5-3.5s
+          if(Math.random()<attackChance){
+            // Pick target: slight bias towards player
+            combatTarget=(player.alive && Math.random()<0.45) ? player : nearest;
+            ai.combatTarget=combatTarget;
+            ai.combatLockTimer=4+Math.random()*4; // commit for 4-8s
+            goFight=true;
+          } else {
+            combatTarget=null; ai.combatTarget=null;
+          }
+        } else {
+          // Between re-evaluations keep previous decision
+          goFight=!!ai.combatTarget;
+          combatTarget=ai.combatTarget;
+        }
+      }
     }
-    // Find nearest asteroid if no nearby ship or as supplement
-    if(!target||Math.hypot(target.x-bot.x,target.y-bot.y)>800){
-      const nearAst=GS.asteroids.filter(a=>Math.hypot(a.x-bot.x,a.y-bot.y)<600);
-      if(nearAst.length&&Math.random()<0.5) targetAst=nearAst.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y))[0];
+
+    // ── ASTEROID MINING TARGET ─────────────────────────────────────────────
+    if(!goFight || !combatTarget){
+      // Find nearest asteroid worth mining — weight by pts/dist ratio
+      if(GS.asteroids.length){
+        let bestScore=-1, bestAst=null;
+        const check=Math.min(GS.asteroids.length, 20); // scan up to 20 rocks
+        for(let i=0;i<check;i++){
+          const a=GS.asteroids[i];
+          const d=Math.hypot(a.x-bot.x, a.y-bot.y);
+          const score=a.pts / (d+1);
+          if(score>bestScore){ bestScore=score; bestAst=a; }
+        }
+        mineTarget=bestAst;
+      }
     }
   }
 
-  const eff = targetAst&&!target ? targetAst : target;
-  const dx=eff?eff.x-bot.x:0;
-  const dy=eff?eff.y-bot.y:0;
-  const dist=eff?Math.hypot(dx,dy):Infinity;
-  const angleToTarget=eff?Math.atan2(dy,dx):bot.angle;
+  // ── RESOLVE EFFECTIVE TARGET ─────────────────────────────────────────────
+  const eff=goFight && combatTarget ? combatTarget : mineTarget;
+  const dx=eff ? eff.x-bot.x : 0;
+  const dy=eff ? eff.y-bot.y : 0;
+  const dist=eff ? Math.hypot(dx,dy) : Infinity;
+  const angleToTarget=eff ? Math.atan2(dy,dx) : bot.angle;
 
-  let wantThrust=false,wantShoot=false,targetAngle=bot.angle;
+  let wantThrust=false, wantShoot=false, targetAngle=bot.angle;
 
   if(ai.state==='evade'){
-    const nearestThreat=enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y))[0];
-    const fleeAngle=nearestThreat?Math.atan2(bot.y-nearestThreat.y,bot.x-nearestThreat.x):bot.angle+Math.PI;
-    targetAngle=fleeAngle+(Math.random()-.5)*0.6;wantThrust=true;
+    const threats=allShips.filter(s=>s.alive&&s.id!==bot.id&&areEnemies(bot,s));
+    threats.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
+    const t=threats[0];
+    const fleeAngle=t ? Math.atan2(bot.y-t.y, bot.x-t.x) : bot.angle+Math.PI;
+    targetAngle=fleeAngle+(Math.random()-.5)*0.5;
+    wantThrust=true;
+
   } else if(!eff){
-    ai.state='patrol';
-    if(ai.stateTimer<0){ai.patrolAngle+=((Math.random()-.5)*1.5);ai.stateTimer=2+Math.random()*3;}
-    targetAngle=ai.patrolAngle;wantThrust=Math.random()<0.6;
-  } else if(dist>500){
-    targetAngle=angleToTarget;wantThrust=true;
+    // Patrol — drift around
+    if(ai.stateTimer<=0){
+      ai.patrolAngle+=((Math.random()-.5)*1.8);
+      ai.stateTimer=2+Math.random()*3;
+    }
+    targetAngle=ai.patrolAngle; wantThrust=Math.random()<0.55;
+
+  } else if(goFight && combatTarget){
+    // Attack mode
+    targetAngle=angleToTarget; wantThrust=dist>180;
+    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.30) wantShoot=true;
+
   } else {
-    targetAngle=angleToTarget;wantThrust=dist>200;
-    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.35) wantShoot=true;
+    // Mining mode — approach and shoot at rock
+    targetAngle=angleToTarget; wantThrust=dist>120;
+    // Shoot at asteroid when aimed
+    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.28) wantShoot=true;
   }
 
-  const diff=angleDiff(bot.angle,targetAngle);
-  bot.angle+=Math.sign(diff)*Math.min(Math.abs(diff),Math.PI*3.5*dt);
+  // ── STEERING & MOVEMENT ──────────────────────────────────────────────────
+  const steerDiff=angleDiff(bot.angle, targetAngle);
+  bot.angle+=Math.sign(steerDiff)*Math.min(Math.abs(steerDiff), Math.PI*3.5*dt);
   bot.angle=((bot.angle+Math.PI)%(Math.PI*2))-Math.PI;
-  if(wantThrust){bot.vx+=Math.cos(bot.angle)*CFG.PLAYER_SPEED*dt*2;bot.vy+=Math.sin(bot.angle)*CFG.PLAYER_SPEED*dt*2;}
-  bot.vx*=0.97;bot.vy*=0.97;
-  const spd=Math.hypot(bot.vx,bot.vy);
-  if(spd>CFG.PLAYER_SPEED){bot.vx=bot.vx/spd*CFG.PLAYER_SPEED;bot.vy=bot.vy/spd*CFG.PLAYER_SPEED;}
 
-  const M=CFG.MAP_SIZE;
-  bot.x=((bot.x+bot.vx*dt)%M+M)%M;
-  bot.y=((bot.y+bot.vy*dt)%M+M)%M;
-
-  if(bot.shootCooldown>0) bot.shootCooldown-=dt;
-  if(wantShoot&&bot.shootCooldown<=0){
-    spawnBullets(bot);
-    const blv=LEVELS[bot.level||0];
-    bot.shootCooldown=blv.shootCd*(1+Math.random()*.4);
+  if(wantThrust){
+    bot.vx+=Math.cos(bot.angle)*CFG.PLAYER_SPEED*dt*2;
+    bot.vy+=Math.sin(bot.angle)*CFG.PLAYER_SPEED*dt*2;
   }
-  if(bot.hp<bot.maxHp&&(nowSec-bot.lastDamageTime)>=CFG.REGEN_DELAY)
-    bot.hp=Math.min(bot.maxHp,bot.hp+CFG.REGEN_RATE*dt);
+  bot.vx*=0.97; bot.vy*=0.97;
+  const spd=Math.hypot(bot.vx,bot.vy);
+  if(spd>CFG.PLAYER_SPEED){bot.vx=bot.vx/spd*CFG.PLAYER_SPEED; bot.vy=bot.vy/spd*CFG.PLAYER_SPEED;}
 
-  // Bots also level up
+  const M2=CFG.MAP_SIZE;
+  bot.x=((bot.x+bot.vx*dt)%M2+M2)%M2;
+  bot.y=((bot.y+bot.vy*dt)%M2+M2)%M2;
+
+  // ── SHOOTING ─────────────────────────────────────────────────────────────
+  if(bot.shootCooldown>0) bot.shootCooldown-=dt;
+  if(wantShoot && bot.shootCooldown<=0){
+    spawnBullets(bot);
+    const blv=LEVELS[Math.min(bot.level||0, LEVELS.length-1)];
+    bot.shootCooldown=blv.shootCd*(1+Math.random()*0.4);
+  }
+
+  // ── REGEN ────────────────────────────────────────────────────────────────
+  if(bot.hp<bot.maxHp && (nowSec-bot.lastDamageTime)>=CFG.REGEN_DELAY)
+    bot.hp=Math.min(bot.maxHp, bot.hp+CFG.REGEN_RATE*dt);
+
   checkLevelUp(bot);
 }
 
 // ─── WIN CONDITION ────────────────────────────────────────────────────────────
 function checkWinCondition(){
+  if(gameMode==='ffa') return; // FFA: no win/lose, infinite play
   if(GS.lives<=0&&!GS.player.alive){
     endGame(false,'ELIMINATED — OUT OF LIVES');
     return;
   }
   if(gameMode==='battleroyal'){
-    const aliveCount=GS.bots.filter(b=>b.alive).length+(GS.player.alive?1:0);
-    if(aliveCount<=1&&GS.player.alive) endGame(true,'LAST PILOT STANDING');
+    // Count bots with lives remaining
+    const aliveOrRespawnable=GS.bots.filter(b=>b.alive||(b.lives>0&&b._ai.respawnTimer<999999)).length;
+    if(aliveOrRespawnable===0&&GS.player.alive) endGame(true,'LAST PILOT STANDING');
   }
 }
 
@@ -1111,6 +1714,20 @@ const Render={
     const camX=p.x-W/2,camY=p.y-H/2;
     ctx.save();ctx.translate(-camX,-camY);
 
+    // ── WORLD STARS ────────────────────────────────────────────────────
+    const nowT=now/1000;
+    for(const ws of GS.worldStars){
+      // Only draw if in viewport (with margin)
+      if(ws.x<camX-8||ws.x>camX+W+8||ws.y<camY-8||ws.y>camY+H+8) continue;
+      let a=ws.a;
+      if(ws.twinkle) a*=0.55+0.45*Math.sin(nowT*ws.ts+ws.tp);
+      ctx.globalAlpha=a;
+      if(ws.tint) ctx.fillStyle=Math.sin(ws.tp)>0?'rgba(180,210,255,1)':'rgba(255,240,180,1)';
+      else ctx.fillStyle='rgba(220,235,255,1)';
+      ctx.beginPath();ctx.arc(ws.x,ws.y,ws.r,0,Math.PI*2);ctx.fill();
+    }
+    ctx.globalAlpha=1;
+
     // Grid
     ctx.strokeStyle='rgba(26,42,74,0.28)';ctx.lineWidth=.5;
     const gs=300,x0=Math.floor(camX/gs)*gs,y0=Math.floor(camY/gs)*gs;
@@ -1129,28 +1746,107 @@ const Render={
     // ── ASTEROIDS ──────────────────────────────────────────────────────
     for(const ast of GS.asteroids){
       ctx.save();ctx.translate(ast.x,ast.y);ctx.rotate(ast.rot);
-      // Draw asteroid polygon
       const hpRatio=ast.hp/ast.maxHp;
-      const brightness=Math.floor(40+hpRatio*30);
-      const glow=0.4+0.2*Math.sin(ast.pulse);
-      ctx.fillStyle=`hsl(25,45%,${brightness}%)`;
-      ctx.strokeStyle=`rgba(255,180,80,${glow})`;
-      ctx.lineWidth=1.5;
+      // Color shifts red as HP drops
+      const brightness=Math.floor(32+hpRatio*28);
+      const saturation=Math.floor(35+hpRatio*20);
+      const hue=Math.floor(25+hpRatio*5);
+      const glow=0.35+0.25*Math.sin(ast.pulse);
+      ctx.fillStyle=`hsl(${hue},${saturation}%,${brightness}%)`;
+      // Stroke color: dim gray to orange as pts increase
+      const ptFrac=(ast.pts-3)/27;
+      const strokeH=Math.floor(15+ptFrac*15);
+      ctx.strokeStyle=`hsla(${strokeH},70%,55%,${glow+ptFrac*0.25})`;
+      ctx.lineWidth=1.5+ptFrac*1.5;
       ctx.beginPath();
       ctx.moveTo(ast.verts[0][0],ast.verts[0][1]);
       for(let vi=1;vi<ast.verts.length;vi++) ctx.lineTo(ast.verts[vi][0],ast.verts[vi][1]);
       ctx.closePath();ctx.fill();ctx.stroke();
-      // HP indicator (small crack lines for damaged)
+      // HP bar below asteroid
       if(ast.hp<ast.maxHp){
-        ctx.strokeStyle='rgba(255,100,0,0.5)';ctx.lineWidth=1;
-        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(ast.size*.4*Math.cos(ast.rot+1),ast.size*.4*Math.sin(ast.rot+1));ctx.stroke();
+        const bw=ast.size*1.6,bh=3,bx=-bw/2,by=ast.size*1.1;
+        ctx.fillStyle='rgba(0,0,0,0.5)';ctx.fillRect(bx,by,bw,bh);
+        ctx.fillStyle=hpRatio>0.5?'#ffaa00':hpRatio>0.25?'#ff6600':'#ff2200';
+        ctx.fillRect(bx,by,bw*hpRatio,bh);
       }
-      // Points badge
-      if(ast.size>CFG.PLAYER_RADIUS*0.8){
-        ctx.fillStyle='rgba(255,220,80,0.85)';ctx.font=`bold ${Math.floor(ast.size*.28)}px Share Tech Mono`;ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText('+'+ast.pts,0,0);
+      // Points + HP badge (show on all non-tiny rocks)
+      ctx.rotate(-ast.rot); // unrotate text
+      const fontSize=Math.max(9,Math.floor(ast.size*.3));
+      ctx.font=`bold ${fontSize}px Share Tech Mono`;
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      // Points label: color scales from white (low) to gold (high)
+      const ptColor=ptFrac>0.6?'#ffd700':ptFrac>0.3?'#ffcc44':'rgba(255,230,160,0.9)';
+      ctx.fillStyle=ptColor;
+      ctx.fillText('+'+ast.pts,0,0);
+      // HP remaining underneath for bigger rocks
+      if(ast.size>CFG.PLAYER_RADIUS*0.7){
+        ctx.font=`${Math.max(7,Math.floor(fontSize*0.6))}px Share Tech Mono`;
+        ctx.fillStyle='rgba(200,200,200,0.55)';
+        ctx.fillText(Math.ceil(ast.hp)+'/'+ast.maxHp,0,fontSize*0.9);
       }
       ctx.restore();
+    }
+
+    // ── SAFE ZONES (TAKEOVER) ──────────────────────────────────────────────
+    for(const safe of GS.safes){
+      if(safe.hp<=0){
+        // Destroyed — show rubble
+        ctx.save();ctx.translate(safe.x,safe.y);
+        ctx.strokeStyle='rgba(255,80,0,0.4)';ctx.lineWidth=2;
+        ctx.setLineDash([6,10]);ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,50,0,0.06)';ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,100,0,0.6)';ctx.font='bold 16px Orbitron,sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('DESTROYED',0,0);
+        ctx.restore();
+        continue;
+      }
+      ctx.save();ctx.translate(safe.x,safe.y);
+      const isTeam0=safe.team===0;
+      const teamCol=isTeam0?'rgba(0,212,255,':'rgba(255,64,96,';
+      const hpRatio=safe.hp/safe.maxHp;
+      const pulse=0.5+0.5*Math.sin(Date.now()*0.003);
+
+      // Outer boundary ring (dashed)
+      ctx.strokeStyle=teamCol+(0.2+hpRatio*0.2)+')';ctx.lineWidth=1.5;
+      ctx.setLineDash([14,8]);ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+      // HP fill — fades as damaged
+      ctx.fillStyle=teamCol+(0.04+hpRatio*0.06)+')';ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.fill();
+
+      // HP arc ring
+      ctx.strokeStyle=teamCol+'0.85)';ctx.lineWidth=5;
+      ctx.beginPath();ctx.arc(0,0,safe.radius-10,-Math.PI/2,-Math.PI/2+hpRatio*Math.PI*2);ctx.stroke();
+      // Depleted portion darker
+      if(hpRatio<1){
+        ctx.strokeStyle=teamCol+'0.15)';ctx.lineWidth=5;
+        ctx.beginPath();ctx.arc(0,0,safe.radius-10,-Math.PI/2+hpRatio*Math.PI*2,-Math.PI/2+Math.PI*2);ctx.stroke();
+      }
+
+      // Center structure — hexagonal base
+      ctx.shadowColor=teamCol+'0.9)';ctx.shadowBlur=14+pulse*8;
+      ctx.strokeStyle=teamCol+(0.7+pulse*0.25)+')';ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let vi=0;vi<6;vi++){const va=(vi/6)*Math.PI*2;const vr=28*(0.9+pulse*0.08);const nx2=Math.cos(va)*vr,ny2=Math.sin(va)*vr;vi===0?ctx.moveTo(nx2,ny2):ctx.lineTo(nx2,ny2);}
+      ctx.closePath();ctx.stroke();
+      ctx.fillStyle=teamCol+'0.12)';ctx.fill();
+
+      // Core glow
+      const cg=ctx.createRadialGradient(0,0,0,0,0,18);
+      cg.addColorStop(0,teamCol+'0.9)');cg.addColorStop(0.5,teamCol+'0.35)');cg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
+      ctx.shadowBlur=0;
+
+      // Team label
+      ctx.fillStyle=teamCol+'0.95)';ctx.font='bold 11px Orbitron,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(isTeam0?'TEAM A':'TEAM B',0,0);
+
+      // HP text below
+      ctx.font='10px Share Tech Mono';ctx.fillStyle='rgba(255,255,255,0.75)';
+      ctx.fillText(Math.ceil(safe.hp)+' HP',0,38);
+
+      ctx.shadowBlur=0;ctx.restore();
     }
 
     // ── AMMO PICKUPS ───────────────────────────────────────────────────
@@ -1185,7 +1881,7 @@ const Render={
         ctx.shadowColor=skin.body;ctx.shadowBlur=18;
       }
 
-      drawShipDesign(ctx,ship.level||0,skin,CFG.PLAYER_RADIUS,ship.angle);
+      drawShipDesign(ctx,ship.level||0,skin,CFG.PLAYER_RADIUS,ship.angle,now/1000);
       ctx.shadowBlur=0;
 
       // HP bar above ship
@@ -1204,16 +1900,65 @@ const Render={
       ctx.restore();
     }
 
-    // ── BULLETS ────────────────────────────────────────────────────────
+    // ── BULLETS — elongated capsule with glow ──────────────────────────
     for(const b of GS.bullets){
       ctx.save();
-      const lv=b.level||0;
-      let col='#00d4ff',glow='rgba(0,212,255,0.8)';
-      if(lv>=6){col='#ff44ff';glow='rgba(255,68,255,0.9)';}
-      else if(lv>=4){col='#ff8800';glow='rgba(255,136,0,0.9)';}
-      else if(lv>=2){col='#ffdd00';glow='rgba(255,221,0,0.8)';}
-      ctx.shadowColor=glow;ctx.shadowBlur=b.radius>5?18:10;
-      ctx.fillStyle=col;ctx.beginPath();ctx.arc(b.x,b.y,b.radius,0,Math.PI*2);ctx.fill();
+      const lv=Math.min(7,b.level||0);
+      const bs=BULLET_STYLE[lv];
+      const angle=Math.atan2(b.vy,b.vx);
+      const len=b.radius*3.5+4; // length of capsule
+      const wid=b.radius*0.85;   // half-width
+      ctx.translate(b.x,b.y);
+      ctx.rotate(angle);
+      // Outer glow pass
+      ctx.shadowColor=bs.glow;
+      ctx.shadowBlur=b.radius>7?28:16;
+      // Trail gradient along length
+      const grad=ctx.createLinearGradient(-len,0,len*0.6,0);
+      grad.addColorStop(0,bs.trail);
+      grad.addColorStop(0.55,bs.core);
+      grad.addColorStop(1,'rgba(255,255,255,0.95)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.ellipse(0,0,len,wid,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.shadowBlur=0;
+      // Bright core streak
+      const coreGrad=ctx.createLinearGradient(-len*0.3,0,len*0.55,0);
+      coreGrad.addColorStop(0,'transparent');
+      coreGrad.addColorStop(0.4,bs.core);
+      coreGrad.addColorStop(1,'rgba(255,255,255,0.9)');
+      ctx.fillStyle=coreGrad;
+      ctx.beginPath();
+      ctx.ellipse(len*0.1,0,len*0.55,wid*0.45,0,0,Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── BOMBS ────────────────────────────────────────────────────────────
+    for(const bm of GS.bombs){
+      ctx.save();ctx.translate(bm.x,bm.y);
+      const pulse=0.6+0.4*Math.sin(bm.age*8);
+      const danger=bm.timer<3; // flash faster when about to blow
+      const flashOn=!danger||Math.floor(bm.age*6)%2===0;
+      if(flashOn){
+        ctx.shadowColor='rgba(255,60,0,0.9)';ctx.shadowBlur=18+pulse*10;
+        // Outer ring
+        ctx.strokeStyle=`rgba(255,80,0,${0.5+pulse*0.4})`;ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(0,0,14+pulse*3,0,Math.PI*2);ctx.stroke();
+        // Inner circle
+        const bg=ctx.createRadialGradient(0,0,0,0,0,10);
+        bg.addColorStop(0,'rgba(255,200,0,0.9)');bg.addColorStop(0.5,'rgba(255,80,0,0.8)');bg.addColorStop(1,'rgba(180,0,0,0.6)');
+        ctx.fillStyle=bg;ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();
+        // Skull symbol
+        ctx.shadowBlur=0;ctx.fillStyle='rgba(0,0,0,0.85)';ctx.font='bold 10px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('✕',0,0);
+        // Timer ring arc
+        ctx.strokeStyle='rgba(255,220,0,0.9)';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.arc(0,0,16,-Math.PI/2,-Math.PI/2+(bm.timer/10)*Math.PI*2);ctx.stroke();
+        // Timer text
+        ctx.fillStyle='#ffdd00';ctx.font='bold 8px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(Math.ceil(bm.timer)+'s',0,18);
+      }
       ctx.shadowBlur=0;ctx.restore();
     }
 
@@ -1221,14 +1966,46 @@ const Render={
     document.getElementById('coords').textContent=`${Math.floor(p.x)} , ${Math.floor(p.y)}`;
 
     ctx.restore(); // camera
-    this.drawMinimap(p);
+    this.drawMinimap(p,now);
   },
 
-  drawMinimap(p){
+  _radarAngle:0,
+  drawMinimap(p,now){
     const mc=document.getElementById('minimap-canvas'),mctx=mc.getContext('2d'),S=mc.width,sc=S/CFG.MAP_SIZE;
     mctx.clearRect(0,0,S,S);
+    // Dark bg
+    mctx.fillStyle='rgba(2,6,16,0.92)';mctx.fillRect(0,0,S,S);
+
+    // Radar sweep — rotates over 3s
+    this._radarAngle=(this._radarAngle||0)+(0.018); // ~deg per frame @60fps ≈ full rotation ~3s
+    const ra=this._radarAngle;
+    // Sweep gradient fan
+    const fanGrad=mctx.createConicalGradient?undefined:null; // fallback
+    const S2=S/2;
+    mctx.save();mctx.translate(S2,S2);
+    // Draw sweep as a filled arc with gradient
+    const sweepWidth=Math.PI/5;
+    const grad=mctx.createRadialGradient(0,0,0,0,0,S2);
+    grad.addColorStop(0,'rgba(0,255,160,0.35)');
+    grad.addColorStop(0.7,'rgba(0,255,160,0.12)');
+    grad.addColorStop(1,'rgba(0,255,160,0)');
+    mctx.beginPath();mctx.moveTo(0,0);mctx.arc(0,0,S2,ra-sweepWidth,ra);mctx.closePath();
+    mctx.fillStyle=grad;mctx.fill();
+    // Bright leading edge line
+    mctx.strokeStyle='rgba(0,255,160,0.85)';mctx.lineWidth=1.2;
+    mctx.beginPath();mctx.moveTo(0,0);mctx.lineTo(Math.cos(ra)*S2,Math.sin(ra)*S2);mctx.stroke();
+    mctx.restore();
+
+    // Radar rings
+    mctx.strokeStyle='rgba(0,180,80,0.15)';mctx.lineWidth=0.8;
+    [0.25,0.5,0.75,1.0].forEach(r=>{mctx.beginPath();mctx.arc(S2,S2,S2*r,0,Math.PI*2);mctx.stroke();});
+    // Cross hairs
+    mctx.strokeStyle='rgba(0,180,80,0.1)';mctx.lineWidth=0.6;
+    mctx.beginPath();mctx.moveTo(S2,0);mctx.lineTo(S2,S);mctx.stroke();
+    mctx.beginPath();mctx.moveTo(0,S2);mctx.lineTo(S,S2);mctx.stroke();
+
     // Asteroids
-    mctx.fillStyle='rgba(180,120,40,0.5)';
+    mctx.fillStyle='rgba(180,120,40,0.55)';
     for(const ast of GS.asteroids){mctx.fillRect(ast.x*sc-1,ast.y*sc-1,2,2);}
     // Bots
     for(const b of GS.bots){
@@ -1239,8 +2016,18 @@ const Render={
     // Ammo
     mctx.fillStyle='rgba(255,210,0,0.6)';
     for(const ap of GS.ammoPickups){if(ap)mctx.fillRect(ap.x*sc-1,ap.y*sc-1,2,2);}
-    // Player
-    mctx.beginPath();mctx.arc(p.x*sc,p.y*sc,4,0,Math.PI*2);mctx.fillStyle='#00d4ff';mctx.fill();
+    // Bombs
+    for(const bm of GS.bombs){
+      mctx.beginPath();mctx.arc(bm.x*sc,bm.y*sc,3,0,Math.PI*2);mctx.fillStyle='rgba(255,80,0,0.85)';mctx.fill();
+    }
+    // Player — white glowing dot with direction tick
+    const px=p.x*sc,py=p.y*sc;
+    mctx.shadowColor='rgba(255,255,255,0.9)';mctx.shadowBlur=6;
+    mctx.beginPath();mctx.arc(px,py,3.5,0,Math.PI*2);mctx.fillStyle='#ffffff';mctx.fill();
+    // Direction indicator line
+    mctx.strokeStyle='rgba(255,255,255,0.7)';mctx.lineWidth=1.5;
+    mctx.beginPath();mctx.moveTo(px,py);mctx.lineTo(px+Math.cos(p.angle)*7,py+Math.sin(p.angle)*7);mctx.stroke();
+    mctx.shadowBlur=0;
   }
 };
 
@@ -1271,9 +2058,10 @@ const UI={
     document.getElementById('rs-score').textContent=GS.score;
     const livesLeft=GS.lives;
     const lrEl=document.getElementById('lives-remaining');
-    if(livesLeft>0) lrEl.textContent=`${livesLeft} LIFE${livesLeft>1?'S':''} REMAINING`;
+    if(gameMode==='ffa') lrEl.textContent='∞ LIVES — SCORE RESET TO 0';
+    else if(livesLeft>0) lrEl.textContent=`${livesLeft} LIFE${livesLeft>1?'S':''} REMAINING`;
     else lrEl.textContent='NO LIVES REMAINING';
-    document.getElementById('respawn-btn').style.display=livesLeft>0?'':'none';
+    document.getElementById('respawn-btn').style.display=(livesLeft>0||gameMode==='ffa')?'':'none';
     document.getElementById('killed-by-text').innerHTML='your ship was destroyed';
   },
   showRespawnScreen(){document.getElementById('respawn-screen').classList.remove('hidden');},
@@ -1297,11 +2085,12 @@ const UI={
     if(ammoWarn) ammoWarn.style.display=(ammo<=0&&p.alive)?'block':'none';
     // Level
     const lv=p.level||0;
-    const lvData=LEVELS[lv];
-    const nextLv=LEVELS[lv+1];
-    document.getElementById('lv-num').textContent=`LV ${lv+1} · ${lvData.desc}`;
-    if(nextLv) document.getElementById('lv-pts').textContent=`${GS.score} / ${nextLv.pts} pts`;
-    else document.getElementById('lv-pts').textContent=`MAX LEVEL · ${GS.score} pts`;
+    const lvData=LEVELS[Math.min(lv,LEVELS.length-1)];
+    // Display number: alpha/beta are both "LV 8"
+    const lvDisplay=lv>=8?8:lv+1;
+    document.getElementById('lv-num').textContent=`LV ${lvDisplay} · ${lvData.desc}`;
+    if(lv>=8||lv>=7) document.getElementById('lv-pts').textContent=`MAX LEVEL · ${GS.score} pts`;
+    else{const nextLv=LEVELS[lv+1];document.getElementById('lv-pts').textContent=`${GS.score} / ${nextLv.pts} pts`;}
     // Lives icons
     const lhud=document.getElementById('lives-hud');
     lhud.innerHTML='';
@@ -1325,6 +2114,20 @@ const UI={
       return `<div class="score-row ${cls}"><span class="sname">${s.username} L${(s.level||0)+1}</span><span>${s.score}</span></div>`;
     }).join('')||'<div class="score-row" style="color:var(--dim)">—</div>';
   },
+  updateBombHUD(){
+    const el=document.getElementById('bomb-timer-hud');
+    if(!el) return;
+    el.innerHTML='';
+    for(const bm of GS.bombs){
+      const d=document.createElement('div');d.className='bomb-timer-entry';
+      d.textContent='💣 '+Math.ceil(bm.timer)+'s';el.appendChild(d);
+    }
+    const cdEl=document.getElementById('bomb-cd-bar');
+    if(cdEl){
+      if(playerBombCd>0){cdEl.textContent='BOMB CD: '+Math.ceil(playerBombCd)+'s';cdEl.classList.add('show');}
+      else{cdEl.classList.remove('show');}
+    }
+  },
   addKillFeed(killer,victim){
     if(!killer&&!victim)return;
     const feed=document.getElementById('kill-feed'),el=document.createElement('div');
@@ -1341,9 +2144,9 @@ const EscMenu={
   quit(){
     this.close();gameRunning=false;GS.over=false;
     GS.player=null;GS.bots=[];GS.bullets=[];GS.asteroids=[];GS.ammoPickups=[];
-    GS.score=0;GS.kills=0;GS.deaths=0;GS.lives=CFG.MAX_LIVES;GS.borderCrossTimer=0;
-    Particles.pool=[];usedNames.clear();deathLingerTimer=0;lastPlayerShoot=false;
-    ['game-screen','hud','respawn-screen','end-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    GS.score=0;GS.kills=0;GS.deaths=0;GS.lives=(gameMode==='ffa')?99:CFG.MAX_LIVES;GS.borderCrossTimer=0;
+    Particles.pool=[];usedNames.clear();deathLingerTimer=0;    ['game-screen','hud','respawn-screen','end-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    document.getElementById('omega-picker').style.display='none';
     ['enter-screen'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
     document.getElementById('credit').classList.remove('hidden');
     document.getElementById('launch-btn').disabled=false;
@@ -1359,7 +2162,7 @@ const EscMenu={
 
 // ─── CONNECTION SEQUENCE ──────────────────────────────────────────────────────
 const CONN_MESSAGES=['Initializing warp drive...','Calculating jump coordinates...','Charging hyperdrive capacitors...','Scanning sector for hostiles...','Deploying combat systems...','Entering battle zone...'];
-const CONN_MODE_LABELS={battleroyal:'BATTLE ROYAL SECTOR',teams:'TEAMS SECTOR',takeover:'TAKEOVER ZONE'};
+const CONN_MODE_LABELS={ffa:'FREE FOR ALL SECTOR',battleroyal:'BATTLE ROYAL SECTOR',teams:'TEAMS SECTOR',takeover:'TAKEOVER ZONE'};
 
 function runConnectionSequence(onDone){
   const sysName=SYSTEMS[Math.floor(Math.random()*SYSTEMS.length)];
@@ -1370,6 +2173,20 @@ function runConnectionSequence(onDone){
   document.getElementById('conn-mode-label').textContent=CONN_MODE_LABELS[gameMode]||'SECTOR';
   document.getElementById('conn-log').innerHTML='';
   document.getElementById('conn-bar').style.width='0%';
+  // Show controls tip
+  const tipEl=document.getElementById('conn-tip');
+  if(tipEl){
+    const B=id=>Binds.label(Binds.map[id])||id;
+    const bombKey=B('bomb');
+    tipEl.innerHTML=
+      `<span style="color:rgba(0,212,255,0.7)">TIP:</span> &nbsp;`+
+      `<span style="color:rgba(0,212,255,0.85)">${B('boost')}</span> boost &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('thrust')}/${B('sideLeft')}/${B('brake')}</span> move &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('shoot')}/LMB</span> shoot<br>`+
+      `<span style="color:rgba(0,212,255,0.85)">${bombKey}</span> drop bomb &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('boost')}</span> hold for boost &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">RMB</span> also thrusts`;
+  }
   let step=0;
   const totalSteps=CONN_MESSAGES.length;
   function nextStep(){
@@ -1414,7 +2231,7 @@ function buildSettingsUI(){
 }
 function updateControlsHint(){
   const B=id=>Binds.label(Binds.map[id]);
-  document.getElementById('controls-hint-display').innerHTML=`<span>${B('thrust')}</span> thrust &nbsp;·&nbsp; <span>${B('brake')}</span> brake &nbsp;·&nbsp; <span>${B('sideLeft')}/${B('sideRight')}</span> strafe &nbsp;·&nbsp; <span>${B('rotLeft')}/${B('rotRight')}</span> rotate<br><span>${B('shoot')}/LMB</span> shoot &nbsp;·&nbsp; <span>RMB</span> thrust &nbsp;·&nbsp; <span>${B('boost')}</span> boost`;
+  document.getElementById('controls-hint-display').innerHTML=`<span>${B('thrust')}</span> thrust &nbsp;·&nbsp; <span>${B('brake')}</span> brake &nbsp;·&nbsp; <span>${B('sideLeft')}/${B('sideRight')}</span> strafe &nbsp;·&nbsp; <span>${B('rotLeft')}/${B('rotRight')}</span> rotate<br><span>${B('shoot')}/LMB</span> shoot &nbsp;·&nbsp; <span>RMB</span> thrust &nbsp;·&nbsp; <span>${B('boost')}</span> boost &nbsp;·&nbsp; <span>${B('bomb')}</span> bomb`;
 }
 
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
@@ -1451,23 +2268,33 @@ document.getElementById('launch-btn').addEventListener('click',()=>{
   // Set map size
   CFG.MAP_SIZE=MAP_SIZES[gameMode]||10000;
 
-  // Assign teams if teams mode
+  // Assign teams for team-based modes
   let playerTeam=-1;
-  if(gameMode==='teams') playerTeam=0;
+  if(gameMode==='teams'||gameMode==='takeover') playerTeam=0;
 
   runConnectionSequence(()=>{
     usedNames.clear();GS.over=false;GS.score=0;GS.kills=0;GS.deaths=0;
-    GS.lives=CFG.MAX_LIVES;GS.borderCrossTimer=0;
-    GS.bullets=[];GS.ammoPickups=[];GS.asteroids=[];
-    Particles.pool=[];deathLingerTimer=0;lastPlayerShoot=false;
-
+    GS.lives=(gameMode==='ffa')?99:CFG.MAX_LIVES;GS.borderCrossTimer=0;
+    GS.bullets=[];GS.ammoPickups=[];GS.asteroids=[];GS.bombs=[];GS.safes=[];playerBombCd=0;
+    GS.worldStars=[];GS.safes=[];
+    Particles.pool=[];deathLingerTimer=0;
     spawnAmmoPickups();
     spawnAsteroids();
+    spawnWorldStars();
+
+    // Spawn safe bases for takeover
+    if(gameMode==='takeover'){
+      const M=CFG.MAP_SIZE;
+      GS.safes=[
+        {team:0,x:M*0.15,y:M*0.5,radius:110,hp:4000,maxHp:4000},
+        {team:1,x:M*0.85,y:M*0.5,radius:110,hp:4000,maxHp:4000},
+      ];
+    }
 
     GS.player=createPlayer(username,playerTeam);
     GS.bots=Array.from({length:botCount},(_,i)=>{
       let team=-1;
-      if(gameMode==='teams') team=i%2===0?1:0; // alternate teams
+      if(gameMode==='teams'||gameMode==='takeover') team=i%2===0?1:0;
       return createBot(team);
     });
 
@@ -1491,10 +2318,52 @@ document.getElementById('respawn-btn').addEventListener('click',()=>{
   p.hp=p.maxHp;p.alive=true;p.invuln=CFG.RESPAWN_INVULN;
   p.ammo=CFG.AMMO_MAX;p.boostFuel=CFG.BOOST_MAX;p.boostRechargeTimer=0;
   p.lastDamageTime=-999;GS.borderCrossTimer=0;
-  deathLingerTimer=0;gameRunning=true;lastPlayerShoot=false;
-  document.getElementById('respawn-screen').classList.add('hidden');
+  deathLingerTimer=0;gameRunning=true;  document.getElementById('respawn-screen').classList.add('hidden');
 });
 document.getElementById('respawn-quit-btn').addEventListener('click',()=>EscMenu.quit());
+
+
+// ─── DEV PIN ─────────────────────────────────────────────────────────────────
+(function(){
+  const btn=document.getElementById('dev-pin-btn');
+  const inp=document.getElementById('dev-pin-input');
+  const st=document.getElementById('dev-pin-status');
+  if(!btn||!inp) return;
+  function tryPin(){
+    if(inp.value==='sussyballz123'){
+      devMode=true;
+      st.textContent='GRANTED';st.style.color='#00ff88';
+      document.getElementById('dev-pin-panel').style.borderColor='rgba(0,255,136,0.35)';
+      document.getElementById('dev-pin-panel').style.background='rgba(0,255,136,0.04)';
+    } else {
+      st.textContent='DENIED';st.style.color='#ff4060';
+      setTimeout(()=>{st.textContent='';},2000);
+    }
+    inp.value='';
+  }
+  btn.addEventListener('click',tryPin);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
+})();
+
+// ─── OMEGA PICKER ────────────────────────────────────────────────────────────
+document.getElementById('pick-alpha').addEventListener('click',()=>{
+  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,8);
+});
+document.getElementById('pick-beta').addEventListener('click',()=>{
+  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,9);
+});
+(function animPreviews(){
+  ['omega-alpha-preview','omega-beta-preview'].forEach((id,i)=>{
+    const cv=document.getElementById(id);if(!cv)return;
+    const ctx2=cv.getContext('2d');
+    ctx2.save();ctx2.clearRect(0,0,cv.width,cv.height);
+    const skin={fill:'rgba(180,60,255,0.18)',body:'#cc00ff',cockpit:'rgba(220,160,255,0.55)'};
+    ctx2.translate(cv.width/2,cv.height/2);
+    drawShipDesign(ctx2,8+i,skin,18,0,performance.now()/1000);
+    ctx2.restore();
+  });
+  requestAnimationFrame(animPreviews);
+})();
 
 requestAnimationFrame(mainLoop);
 </script>
