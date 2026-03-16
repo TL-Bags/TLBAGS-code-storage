@@ -1,62 +1,272 @@
 <!DOCTYPE html>
-
-
-<!-- Ultimate Game Stash file--> 
-<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
-
-
-
-
-
-<html>
-
+<html lang="en">
 <head>
-	<base href="https://cdn.jsdelivr.net/gh/genizy/polytrack@main/">
-	<script>
-		window.jkdfgnjkndfg = document.querySelector('base').href;
-		fetch("simulation_worker.bundle.js").then(res => res.text()).then(text => {
-			const blob = new Blob([text.replaceAll("replacethisplease", window.jkdfgnjkndfg)], { type: 'application/javascript' });
-			window.simulationworker = URL.createObjectURL(blob);
-		});
-		const ogworker = window.Worker;
-		window.Worker = function (scripturl, options) {
-			if (typeof scripturl === 'string' && scripturl.toLowerCase() === "simulation_worker.bundle.js") {
-				scripturl = window.simulationworker;
-			}
-			return new ogworker(scripturl, options);
-		};
-		window.Worker.prototype = ogworker.prototype;
+  <meta charset="UTF-8">
+  <title>Game Loader</title>
+  <p>Due to XML and fetch request limitations, Polytrack will be opened in about:blank.</p>
 
-		const ogfetch = window.fetch;
-		window.fetch = async function (input, init) {
-			if (typeof input === "string") {
-				input = input.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
-			} else if (input instanceof Request) {
-				const newUrl = input.url.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
-				input = new Request(newUrl, input);
-			}
-			return ogfetch(input, init);
-		};
+  <button id="polybtn" onclick="openpolypoop()">Open Polytrack</button>
+</head>
+<body>
+<script>
 
-		const ogxml = XMLHttpRequest.prototype.open;
-		XMLHttpRequest.prototype.open = function (method, url, ...rest) {
-			if (typeof url === "string") {
-				url = url.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
-			}
-			return ogxml.call(this, method, url, ...rest);
-		};
-	</script>
-	<link rel="manifest" href="manifest.json" />
-	<meta name="viewport"
-		content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+	function openpolypoop() {
+  const win = window.open("about:blank", "_blank");
+  const doc = win.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html>
+<html>
+<head>
+  <base href="https://cdn.jsdelivr.net/gh/genizy/polytrack@main/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="manifest" href="manifest.json" />
+
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* ── Ad Banner (left side) ── */
+    #ad-banner-wrap {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%) translateX(-100%);
+      width: min(300px, calc(100vw - 24px));
+      z-index: 9999;
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      pointer-events: none;
+      transition: transform 0.42s cubic-bezier(0.34, 1.18, 0.64, 1);
+    }
+    #ad-banner-wrap.open {
+      transform: translateY(-50%) translateX(0%);
+      pointer-events: all;
+    }
+    /* Close button sits on the RIGHT edge of the ad, vertically centered */
+    #ad-close-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      background: #1a1a1a;
+      color: #c8c8c8;
+      border: 1px solid #333;
+      border-left: none;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      line-height: 1;
+      writing-mode: vertical-rl;
+      transition: background 0.18s, color 0.18s;
+      user-select: none;
+      align-self: center;
+      height: 80px;
+    }
+    #ad-close-btn:hover { background: #2e2e2e; color: #fff; }
+    #ad-close-btn .close-x {
+      font-size: 14px;
+      line-height: 1;
+      writing-mode: horizontal-tb;
+    }
+    #ad-banner-box {
+      width: 100%;
+      height: 600px;
+      background: #111;
+      border: 1px solid #2b2b2b;
+      border-radius: 0 10px 10px 0;
+      box-shadow: 6px 0 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03) inset;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    #ad-banner-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 4px);
+      pointer-events: none;
+      z-index: 1;
+    }
+    #ad-slot {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Timer bar runs vertically on the right edge of the ad box */
+    #ad-timer-bar {
+      position: absolute;
+      top: 0; right: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(180deg, #444, #666);
+      transform-origin: top center;
+      z-index: 3;
+    }
+    #ad-timer-bar.ticking {
+      animation: drain 300s linear forwards;
+    }
+    @keyframes drain {
+      from { transform: scaleY(1); }
+      to   { transform: scaleY(0); }
+    }
+  </style>
+
+  <script>
+    window.jkdfgnjkndfg = document.querySelector('base').href;
+    fetch("simulation_worker.bundle.js").then(res => res.text()).then(text => {
+      const blob = new Blob([text.replaceAll("replacethisplease", window.jkdfgnjkndfg)], { type: 'application/javascript' });
+      window.simulationworker = URL.createObjectURL(blob);
+    });
+    const ogworker = window.Worker;
+    window.Worker = function (scripturl, options) {
+      if (typeof scripturl === 'string' && scripturl.toLowerCase() === "simulation_worker.bundle.js") {
+        scripturl = window.simulationworker;
+      }
+      return new ogworker(scripturl, options);
+    };
+    window.Worker.prototype = ogworker.prototype;
+
+    const ogfetch = window.fetch;
+    window.fetch = async function (input, init) {
+      if (typeof input === "string") {
+        input = input.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
+      } else if (input instanceof Request) {
+        const newUrl = input.url.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
+        input = new Request(newUrl, input);
+      }
+      return ogfetch(input, init);
+    };
+
+    const ogxml = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+      if (typeof url === "string") {
+        url = url.replace("vps.kodub.com:43273", "vpskodub.tmena1565.workers.dev");
+      }
+      return ogxml.call(this, method, url, ...rest);
+    };
+  <\/script>
 </head>
 
 <body>
-	<canvas id="screen"></canvas>
-	<div id="ui"></div>
-	<div id="transition-layer"></div>
+  <!-- Game elements -->
+  <canvas id="screen"></canvas>
+  <div id="ui"></div>
+  <div id="transition-layer"></div>
 
-	<script type="module" src="main.bundle.js" defer></script>
+  <!-- Ad Banner -->
+  <div id="ad-banner-wrap">
+    <div id="ad-banner-box">
+      <div id="ad-slot">
+        <script>
+          atOptions = {
+            'key' : '997049bce7904492c2a6d34a649fa46e',
+            'format' : 'iframe',
+            'height' : 250,
+            'width' : 300,
+            'params' : {}
+          };
+        <\/script>
+        <script src="https://glamourpicklessteward.com/997049bce7904492c2a6d34a649fa46e/invoke.js"><\/script>
+      <\/div>
+      <div id="ad-timer-bar"><\/div>
+    <\/div>
+    <button id="ad-close-btn" aria-label="Close advertisement">
+      <span class="close-x">&#x2715;<\/span>
+      <span>close ad<\/span>
+    <\/button>
+  <\/div>
+
+  <!-- Game bundle -->
+  <script type="module" src="main.bundle.js" defer><\/script>
+
+  <!-- Ad logic -->
+  <script>
+    (() => {
+      const INTERVAL_MS = 5 * 60 * 1000;
+      const wrap     = document.getElementById('ad-banner-wrap');
+      const closeBtn = document.getElementById('ad-close-btn');
+      const timerBar = document.getElementById('ad-timer-bar');
+
+      function openBanner() {
+        wrap.classList.add('open');
+        timerBar.classList.remove('ticking');
+        void timerBar.offsetWidth;
+        timerBar.classList.add('ticking');
+      }
+
+      function closeBanner() {
+        wrap.classList.remove('open');
+        timerBar.classList.remove('ticking');
+      }
+
+      closeBtn.addEventListener('click', closeBanner);
+      openBanner();
+      setInterval(openBanner, INTERVAL_MS);
+    })();
+  <\/script>
 </body>
-
+</html>`);
+  doc.close();
+};
+</script>
+</body>
 </html>
+<style>
+#polybtn {
+    position: relative;
+    padding: 12px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;              /* dark text by default */
+    background: transparent;
+    border: 2px solid #1e90ff;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 6px;
+    transition: color 0.3s ease;
+}
+
+/* Blue fill animation */
+#polybtn::before {
+    content: "";
+    position: absolute;
+    inset: 0;                    /* top:0; right:0; bottom:0; left:0 */
+    width: 0%;
+    background: #1e90ff;
+    transition: width 0.35s ease;
+    z-index: 0;                  /* behind text but above page */
+}
+
+/* Make text sit above the fill */
+#polybtn span,
+#polybtn {
+    position: relative;
+    z-index: 1;
+}
+
+/* Hover effect */
+#polybtn:hover {
+    color: #ffffff;              /* white text on blue */
+}
+
+#polybtn:hover::before {
+    width: 100%;
+}
+
+</style>
