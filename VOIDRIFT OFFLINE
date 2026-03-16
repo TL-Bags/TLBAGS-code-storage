@@ -90,8 +90,8 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
 .esc-title{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:0.25em;color:var(--accent);text-align:center;margin-bottom:0.5rem;}
 
 /* ── GAME ── */
-#game-screen{z-index:1;}
-#game-canvas{display:block;cursor:none;}
+#game-screen{z-index:1;cursor:crosshair;}
+#game-canvas{display:block;cursor:crosshair;}
 
 /* ── HUD ── */
 #hud{position:fixed;inset:0;z-index:5;pointer-events:none;}
@@ -280,6 +280,7 @@ input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-in
     <div class="conn-subtitle" id="conn-mode-label">BATTLE ROYAL SECTOR</div>
     <div class="conn-log" id="conn-log"></div>
     <div class="conn-bar-wrap"><div class="conn-bar" id="conn-bar"></div></div>
+    <div id="conn-tip" style="margin-top:1.2rem;font-size:0.6rem;color:rgba(0,212,255,0.45);letter-spacing:0.12em;text-align:center;line-height:1.9;border-top:1px solid rgba(0,212,255,0.12);padding-top:0.8rem;max-width:420px;"></div>
   </div>
 </div>
 
@@ -489,6 +490,7 @@ const BIND_DEFS = [
   {id:'rotRight',  label:'Rotate Right',   def:'ArrowRight'},
   {id:'shoot',     label:'Shoot',          def:'Space'},
   {id:'boost',     label:'Boost',          def:'ShiftLeft'},
+  {id:'bomb',      label:'Drop Bomb',       def:'KeyR'},
   {id:'escMenu',   label:'Pause Menu',     def:'Escape'},
 ];
 const Binds = {
@@ -578,7 +580,7 @@ let devMode=false;
 let playerBombCd=0; // seconds until player can drop another bomb
 
 const GS = {
-  player:null, bots:[], bullets:[], asteroids:[], ammoPickups:[], bombs:[], worldStars:[],
+  player:null, bots:[], bullets:[], asteroids:[], ammoPickups:[], bombs:[], worldStars:[], safes:[],
   score:0, kills:0, deaths:0, lives:CFG.MAX_LIVES, level:0,
   over:false,
   borderCrossTimer:0, // cooldown tracker for player border crossing
@@ -696,48 +698,70 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
     ctx.beginPath();ctx.arc(R*.3,0,R*.22,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
 
   } else if(level===5){
-    // ── LV6 WARBIRD — predator tri-blade ──────────────────────────────────
-    // Core spine
-    ctx.beginPath();ctx.moveTo(R*1.4,0);ctx.lineTo(R*.3,R*.15);ctx.lineTo(-R*1.0,R*.2);ctx.lineTo(-R*1.1,0);ctx.lineTo(-R*1.0,-R*.2);ctx.lineTo(R*.3,-R*.15);ctx.closePath();
+    // ── LV6 WARBIRD — arrowhead with swept scythe wings ──────────────────
+    // Razor fuselage — very thin and long
+    ctx.beginPath();
+    ctx.moveTo(R*1.6,0);ctx.lineTo(R*.2,R*.12);ctx.lineTo(-R*1.15,R*.18);
+    ctx.lineTo(-R*1.28,0);ctx.lineTo(-R*1.15,-R*.18);ctx.lineTo(R*.2,-R*.12);
+    ctx.closePath();
     ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
-    // Swept razor wings
+    // Twin scythe wings — curved, swept forward then back
     [1,-1].forEach(s=>{
       ctx.beginPath();
-      ctx.moveTo(R*.5,s*R*.15);ctx.lineTo(R*.7,s*R*.6);ctx.lineTo(R*.0,s*R*1.1);
-      ctx.lineTo(-R*.5,s*R*.95);ctx.lineTo(-R*.95,s*R*.55);ctx.lineTo(-R*.95,s*R*.2);
-      ctx.closePath();ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.5;ctx.stroke();
-      // razor wing tip
-      ctx.shadowColor=body;ctx.shadowBlur=8;
-      _edge(ctx,body,R*.7,s*R*.6,R*.85,s*R*.72,2.5);
-      _edge(ctx,body,R*.0,s*R*1.1,-R*.1,s*R*1.25,2.5);
+      ctx.moveTo(R*.8,s*R*.12);
+      ctx.bezierCurveTo(R*1.1,s*R*.5, R*.4,s*R*1.0, -R*.1,s*R*1.1);
+      ctx.lineTo(-R*.6,s*R*.85);
+      ctx.bezierCurveTo(-R*.2,s*R*.7, R*.3,s*R*.45, R*.4,s*R*.12);
+      ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=1.6;ctx.stroke();
+      // Razor tip
+      ctx.shadowColor=body;ctx.shadowBlur=10;
+      _edge(ctx,body,-R*.1,s*R*1.1,-R*.22,s*R*1.28,3);
       ctx.shadowBlur=0;
     });
-    // Dorsal cannon ridge
-    _edge(ctx,body,R*1.4,0,R*.3,0,1.5);
-    ctx.beginPath();ctx.arc(R*.55,0,R*.22,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
+    // Glowing engine stripe
+    ctx.shadowColor=cock;ctx.shadowBlur=8;
+    _edge(ctx,cock,R*1.6,0,-R*1.28,0,1.2);
+    ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(R*.6,0,R*.18,0,Math.PI*2);ctx.fillStyle=cock;ctx.fill();
 
   } else if(level===6){
-    // ── LV7 DREADNOUGHT — armored fortress hulk ──────────────────────────
-    // Massive central slab
+    // ── LV7 DREADNOUGHT — delta fortress with massive swept delta wings ───
+    // Narrow central spine
     ctx.beginPath();
-    ctx.moveTo(R*1.5,0);ctx.lineTo(R*.9,R*.45);ctx.lineTo(R*.5,R*.65);
-    ctx.lineTo(-R*.3,R*.85);ctx.lineTo(-R*.9,R*.7);ctx.lineTo(-R*1.3,R*.35);
-    ctx.lineTo(-R*1.4,0);ctx.lineTo(-R*1.3,-R*.35);ctx.lineTo(-R*.9,-R*.7);
-    ctx.lineTo(-R*.3,-R*.85);ctx.lineTo(R*.5,-R*.65);ctx.lineTo(R*.9,-R*.45);
+    ctx.moveTo(R*1.8,0);ctx.lineTo(R*.4,R*.2);ctx.lineTo(-R*1.1,R*.28);
+    ctx.lineTo(-R*1.35,0);ctx.lineTo(-R*1.1,-R*.28);ctx.lineTo(R*.4,-R*.2);
     ctx.closePath();
-    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2.5;ctx.stroke();
-    // Armor ridge plates
-    ctx.globalAlpha=0.5;ctx.strokeStyle=body;ctx.lineWidth=1.2;
-    [[R*.8,R*.3,R*.2,R*.6],[R*.8,-R*.3,R*.2,-R*.6],[-R*.4,R*.6,-R*.8,R*.5],[-R*.4,-R*.6,-R*.8,-R*.5]].forEach(([x1,y1,x2,y2])=>_edge(ctx,body,x1,y1,x2,y2,1.2));
-    ctx.globalAlpha=1;
-    // Shoulder spikes
-    ctx.shadowColor=body;ctx.shadowBlur=8;
-    [[R*.5,R*.65,R*.6,R*.88],[R*.5,-R*.65,R*.6,-R*.88],[-R*.3,R*.85,-R*.25,R*1.05],[-R*.3,-R*.85,-R*.25,-R*1.05]].forEach(([x1,y1,x2,y2])=>_edge(ctx,body,x1,y1,x2,y2,2.5));
-    ctx.shadowBlur=0;
-    // Cockpit dome
-    const cg6=ctx.createRadialGradient(R*.55,0,0,R*.55,0,R*.3);
-    cg6.addColorStop(0,'rgba(255,255,200,0.9)');cg6.addColorStop(0.6,cock);cg6.addColorStop(1,'transparent');
-    ctx.beginPath();ctx.arc(R*.55,0,R*.3,0,Math.PI*2);ctx.fillStyle=cg6;ctx.fill();
+    ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+    // Giant swept delta wings — the main visual
+    [1,-1].forEach(s=>{
+      ctx.beginPath();
+      ctx.moveTo(R*1.0,s*R*.2);
+      ctx.lineTo(R*1.2,s*R*.55);
+      ctx.lineTo(R*.3,s*R*1.35); // sharp outer tip
+      ctx.lineTo(-R*.6,s*R*1.45); // rear tip
+      ctx.lineTo(-R*1.1,s*R*.85);
+      ctx.lineTo(-R*1.1,s*R*.28);
+      ctx.closePath();
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+      // Wing leading edge glow
+      ctx.shadowColor=body;ctx.shadowBlur=12;
+      _edge(ctx,body,R*1.0,s*R*.2,R*1.2,s*R*.55,2);
+      _edge(ctx,body,R*1.2,s*R*.55,R*.3,s*R*1.35,2.5);
+      _edge(ctx,body,R*.3,s*R*1.35,-R*.6,s*R*1.45,2);
+      ctx.shadowBlur=0;
+      // Rear serrated edge marks
+      ctx.globalAlpha=0.45;
+      _edge(ctx,body,-R*.3,s*R*1.2,-R*.5,s*R*1.0,1.2);
+      _edge(ctx,body,-R*.1,s*R*1.3,-R*.35,s*R*1.1,1.2);
+      ctx.globalAlpha=1;
+    });
+    // Cross brace
+    _edge(ctx,body,R*.8,0,-R*1.1,0,1);
+    // Cockpit
+    const cg6=ctx.createRadialGradient(R*.6,0,0,R*.6,0,R*.28);
+    cg6.addColorStop(0,'rgba(255,255,200,0.95)');cg6.addColorStop(0.6,cock);cg6.addColorStop(1,'transparent');
+    ctx.beginPath();ctx.arc(R*.6,0,R*.28,0,Math.PI*2);ctx.fillStyle=cg6;ctx.fill();
 
   } else if(level===7||level===8||level===9){
     // ── LV8 OMEGA (base shape) — used for both variants briefly ──────────
@@ -747,28 +771,55 @@ function drawShipDesign(ctx, level, skin, R, angle, animT){
     const pulseR=isAlpha?R*1.55:R*1.35;
 
     if(isAlpha){
-      // OMEGA ALPHA — Dyson Sphere + long lance hull
-      // Long central lance
-      ctx.beginPath();ctx.moveTo(R*2.0,0);ctx.lineTo(R*.5,R*.22);ctx.lineTo(-R*1.8,R*.32);ctx.lineTo(-R*2.0,0);ctx.lineTo(-R*1.8,-R*.32);ctx.lineTo(R*.5,-R*.22);ctx.closePath();
+      // OMEGA ALPHA — Dyson Sphere + massive swept grand wings
+      // Central lance hull (long and imposing)
+      ctx.beginPath();
+      ctx.moveTo(R*2.2,0);ctx.lineTo(R*.6,R*.25);ctx.lineTo(-R*1.6,R*.38);
+      ctx.lineTo(-R*2.2,0);ctx.lineTo(-R*1.6,-R*.38);ctx.lineTo(R*.6,-R*.25);
+      ctx.closePath();
       ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2.5;ctx.stroke();
+      // MASSIVE swept grand wings — the hallmark of alpha
+      [1,-1].forEach(s=>{
+        ctx.beginPath();
+        ctx.moveTo(R*1.4,s*R*.25);
+        ctx.lineTo(R*1.8,s*R*.7);
+        ctx.lineTo(R*.6,s*R*1.8);  // huge outer tip
+        ctx.lineTo(-R*.5,s*R*2.1); // swept rear point
+        ctx.lineTo(-R*1.5,s*R*1.5);
+        ctx.lineTo(-R*2.0,s*R*.55);
+        ctx.lineTo(-R*1.6,s*R*.38);
+        ctx.closePath();
+        ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
+        // Glowing leading edges
+        ctx.shadowColor=body;ctx.shadowBlur=14;
+        _edge(ctx,body,R*1.4,s*R*.25,R*1.8,s*R*.7,2.5);
+        _edge(ctx,body,R*1.8,s*R*.7,R*.6,s*R*1.8,3);
+        _edge(ctx,body,R*.6,s*R*1.8,-R*.5,s*R*2.1,2.5);
+        ctx.shadowBlur=0;
+        // Wing section markings
+        ctx.globalAlpha=0.35;
+        _edge(ctx,body,R*1.0,s*R*.6,R*.0,s*R*1.4,1.2);
+        _edge(ctx,body,R*.2,s*R*1.6,-R*.8,s*R*1.6,1.2);
+        ctx.globalAlpha=1;
+      });
       // Dyson sphere rings (3 ellipses at different angles)
-      ctx.globalAlpha=0.6;
-      [[0,R*.85,R*.35],[0.5,R*.75,R*.28],[-0.5,R*.75,R*.28]].forEach(([tilt,rx,ry])=>{
-        ctx.beginPath();ctx.ellipse(0,0,rx,ry,tilt,0,Math.PI*2);ctx.strokeStyle=body;ctx.lineWidth=1.8;ctx.stroke();
+      ctx.globalAlpha=0.65;
+      [[0,R*1.0,R*.4],[0.55,R*.88,R*.32],[-0.55,R*.88,R*.32]].forEach(([tilt,rx,ry])=>{
+        ctx.beginPath();ctx.ellipse(0,0,rx,ry,tilt,0,Math.PI*2);ctx.strokeStyle=body;ctx.lineWidth=2;ctx.stroke();
       });
       ctx.globalAlpha=1;
       // Pulsing energy core
-      const ecol=`rgba(180,80,255,${0.55+0.35*Math.sin(animT*3)})`;
-      const eg=ctx.createRadialGradient(0,0,0,0,0,R*.42);
-      eg.addColorStop(0,'rgba(255,200,255,0.9)');eg.addColorStop(0.5,ecol);eg.addColorStop(1,'transparent');
-      ctx.beginPath();ctx.arc(0,0,R*.42,0,Math.PI*2);ctx.fillStyle=eg;ctx.fill();
-      // Spine glow
-      ctx.shadowColor='rgba(180,80,255,0.8)';ctx.shadowBlur=14;
-      _edge(ctx,body,R*2.0,0,-R*2.0,0,1.5);
+      const ecol=`rgba(180,80,255,${0.6+0.35*Math.sin(animT*3)})`;
+      const eg=ctx.createRadialGradient(0,0,0,0,0,R*.5);
+      eg.addColorStop(0,'rgba(255,200,255,0.95)');eg.addColorStop(0.5,ecol);eg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(0,0,R*.5,0,Math.PI*2);ctx.fillStyle=eg;ctx.fill();
+      // Spine glow line
+      ctx.shadowColor='rgba(180,80,255,0.9)';ctx.shadowBlur=18;
+      _edge(ctx,body,R*2.2,0,-R*2.2,0,2);
       ctx.shadowBlur=0;
       // Forward lance tip
-      ctx.shadowColor=body;ctx.shadowBlur=10;
-      _edge(ctx,body,R*1.8,0,R*2.05,0,3);
+      ctx.shadowColor=body;ctx.shadowBlur=14;
+      _edge(ctx,body,R*2.0,0,R*2.25,0,4);
       ctx.shadowBlur=0;
 
     } else if(isBeta){
@@ -901,7 +952,8 @@ function createPlayer(username,team){
 
 function createBot(team){
   const s=createShipBase(nextId++,pickName(),team);
-  s._ai={state:'patrol',patrolAngle:Math.random()*Math.PI*2,stateTimer:0,currentTarget:null,fleeTimer:0,respawnTimer:0};
+  s._ai={state:'mine',patrolAngle:Math.random()*Math.PI*2,stateTimer:0,currentTarget:null,fleeTimer:0,respawnTimer:0,combatTarget:null,combatLockTimer:0};
+  s.lives=(gameMode==='battleroyal')?CFG.MAX_LIVES:Infinity;
   return s;
 }
 
@@ -1089,7 +1141,7 @@ const Input={
     if(!document.getElementById('esc-overlay').classList.contains('hidden')){if(Binds.idFor(e.code)==='escMenu'){EscMenu.close();e.preventDefault();}return;}
     if(gameRunning&&Binds.idFor(e.code)==='escMenu'){EscMenu.open();e.preventDefault();return;}
     // Bomb drop — R key
-    if(gameRunning&&e.code==='KeyR'&&GS.player&&GS.player.alive&&!GS.over){
+    if(gameRunning&&Binds.idFor(e.code)==='bomb'&&GS.player&&GS.player.alive&&!GS.over){
       if(playerBombCd<=0){
         GS.bombs.push({id:nextId++,x:GS.player.x,y:GS.player.y,timer:10,age:0,radius:22,ownerId:GS.player.id});
         playerBombCd=30;
@@ -1133,7 +1185,6 @@ const Input={
 
 // ─── PHYSICS / GAME TICK ──────────────────────────────────────────────────────
 let lastTickTime=0;
-let lastPlayerShoot=false;
 
 function tickGame(now){
   if(!gameRunning||GS.over)return;
@@ -1185,6 +1236,8 @@ function tickGame(now){
     // Map border — mode-dependent
     let nx=p.x+p.vx*dt, ny=p.y+p.vy*dt;
     const M=CFG.MAP_SIZE;
+    // Always tick down border cooldown
+    if(GS.borderCrossTimer>0) GS.borderCrossTimer=Math.max(0,GS.borderCrossTimer-dt);
     if(gameMode==='takeover'){
       // Hard walls — no crossing at all
       if(nx<CFG.PLAYER_RADIUS){nx=CFG.PLAYER_RADIUS;p.vx=Math.abs(p.vx)*0.3;}
@@ -1193,19 +1246,22 @@ function tickGame(now){
       if(ny>M-CFG.PLAYER_RADIUS){ny=M-CFG.PLAYER_RADIUS;p.vy=-Math.abs(p.vy)*0.3;}
       p.x=nx;p.y=ny;
     } else if(gameMode==='ffa'){
-      // FFA: free wrap, no cooldown
+      // FFA: free wrap, no cooldown ever
       p.x=((nx%M)+M)%M; p.y=((ny%M)+M)%M;
     } else {
-      // BR and Teams: wrap with 10s cooldown
-      const crossed=(nx<0||nx>M||ny<0||ny>M);
-      if(GS.borderCrossTimer>0) GS.borderCrossTimer-=dt;
+      // BR and Teams: wrap allowed only when cooldown is 0
+      const atEdgeX=(nx<0||nx>=M);
+      const atEdgeY=(ny<0||ny>=M);
+      const crossed=atEdgeX||atEdgeY;
       if(crossed&&GS.borderCrossTimer<=0){
+        // Wrap and start cooldown
         p.x=((nx%M)+M)%M;p.y=((ny%M)+M)%M;
         GS.borderCrossTimer=CFG.BORDER_CROSS_COOLDOWN;
       } else if(crossed&&GS.borderCrossTimer>0){
-        if(nx<0||nx>M){p.vx*=-0.4;nx=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.x));}
-        if(ny<0||ny>M){p.vy*=-0.4;ny=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.y));}
-        p.x=nx;p.y=ny;
+        // Blocked by cooldown — push back hard
+        if(atEdgeX){p.vx*=-0.5;nx=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.x));}
+        if(atEdgeY){p.vy*=-0.5;ny=Math.max(CFG.PLAYER_RADIUS,Math.min(M-CFG.PLAYER_RADIUS,p.y));}
+        p.x=Math.max(0,Math.min(M,nx));p.y=Math.max(0,Math.min(M,ny));
       } else {
         p.x=nx;p.y=ny;
       }
@@ -1215,16 +1271,14 @@ function tickGame(now){
     if(p.hp<p.maxHp&&(nowSec-p.lastDamageTime)>=CFG.REGEN_DELAY)
       p.hp=Math.min(p.maxHp,p.hp+CFG.REGEN_RATE*dt);
 
-    // Shooting
-    const lv=LEVELS[p.level||0];
+    // Shooting — cooldown-gated, no edge-trigger (works while moving)
+    const lv=LEVELS[Math.min(p.level||0,LEVELS.length-1)];
     if(p.shootCooldown>0) p.shootCooldown-=dt;
-    const wantShoot=Input.keys.shoot&&p.shootCooldown<=0&&p.ammo>0;
-    if(wantShoot&&!lastPlayerShoot){
+    if(Input.keys.shoot&&p.shootCooldown<=0&&p.ammo>0&&!p._pendingOmega){
       spawnBullets(p);
       p.ammo=Math.max(0,p.ammo-1);
       p.shootCooldown=lv.shootCd;
     }
-    lastPlayerShoot=Input.keys.shoot;
 
     // Level up check
     checkLevelUp(p);
@@ -1235,12 +1289,15 @@ function tickGame(now){
   // ── BOTS ────────────────────────────────────────────────────────────────
   for(const bot of GS.bots){
     if(!bot.alive){
-      bot._ai.respawnTimer-=dt;
-      if(bot._ai.respawnTimer<=0){
-        const rp=randPos(300);bot.x=rp.x;bot.y=rp.y;bot.vx=0;bot.vy=0;
-        bot.hp=bot.maxHp;bot.alive=true;bot.invuln=CFG.RESPAWN_INVULN;
-        bot.shootCooldown=0;bot.lastDamageTime=-999;
-        bot._ai.state='patrol';bot._ai.fleeTimer=0;
+      if(bot.lives===undefined) bot.lives=Infinity;
+      if(bot.lives>0){
+        bot._ai.respawnTimer-=dt;
+        if(bot._ai.respawnTimer<=0){
+          const rp=randPos(300);bot.x=rp.x;bot.y=rp.y;bot.vx=0;bot.vy=0;
+          bot.hp=bot.maxHp;bot.alive=true;bot.invuln=CFG.RESPAWN_INVULN;
+          bot.shootCooldown=0;bot.lastDamageTime=-999;
+          bot._ai.state='patrol';bot._ai.fleeTimer=0;
+        }
       }
       continue;
     }
@@ -1265,7 +1322,9 @@ function tickGame(now){
           target.hp=0;target.alive=false;
           Particles.emitExplosion(target.x,target.y);
           if(target.isPlayer){
-            GS.deaths++;GS.lives--;
+            GS.deaths++;
+            if(gameMode!=='ffa') GS.lives--;
+            else{GS.lives=99;GS.score=0;p.score=0;} // FFA: infinite respawns, lose score
             deathLingerTimer=3;UI.startDeathLinger();
           } else {
             const killer=allShips.find(s=>s.id===b.ownerId);
@@ -1273,7 +1332,9 @@ function tickGame(now){
               killer.kills++;killer.score+=50;
               if(killer.isPlayer){GS.kills++;GS.score+=50;checkLevelUp(p);}
             }
-            target._ai.respawnTimer=CFG.ENEMY_RESPAWN_TIME;
+            if(target.lives===undefined) target.lives=Infinity;
+            if(target.lives!==Infinity) target.lives--;
+            target._ai.respawnTimer=(target.lives>0)?CFG.ENEMY_RESPAWN_TIME:999999;
             UI.addKillFeed(killer?.username,target.username);
           }
           checkWinCondition();
@@ -1282,11 +1343,26 @@ function tickGame(now){
       }
     }
 
+    // Check enemy safes (takeover only)
+    if(gameMode==='takeover'){
+      for(const safe of GS.safes){
+        if(safe.hp<=0) continue;
+        // Only enemy team bullets damage a safe
+        if(b.ownerTeam===safe.team) continue; // friendly fire on own safe blocked
+        if(b.ownerTeam===-1) continue; // neutral can't damage safes
+        if(Math.hypot(safe.x-b.x,safe.y-b.y)<safe.radius+b.radius){
+          safe.hp=Math.max(0,safe.hp-b.dmg);
+          Particles.emitHit(b.x,b.y,safe.team===0?'#00d4ff':'#ff4060');
+          return false;
+        }
+      }
+    }
+
     // Check asteroids — hp = pts*20, bullets chip away with b.dmg
     for(let ai=0;ai<GS.asteroids.length;ai++){
       const ast=GS.asteroids[ai];
       if(Math.hypot(ast.x-b.x,ast.y-b.y)<ast.size+b.radius){
-        ast.hp-=b.dmg;
+        ast.hp-=b.dmg*1.5; // asteroids take 1.5x bullet damage
         Particles.emitAsteroidHit(b.x,b.y,ast.size);
         if(ast.hp<=0){
           const killer=allShips.find(s=>s.id===b.ownerId);
@@ -1368,7 +1444,7 @@ function tickGame(now){
         if(ship.hp<=0){
           ship.hp=0; ship.alive=false;
           Particles.emitExplosion(ship.x,ship.y);
-          if(ship.isPlayer){GS.deaths++;GS.lives--;deathLingerTimer=3;UI.startDeathLinger();}
+          if(ship.isPlayer){GS.deaths++;if(gameMode!=='ffa')GS.lives--;else{GS.lives=99;GS.score=0;p.score=0;}deathLingerTimer=3;UI.startDeathLinger();}
           else{const killer=allShips.find(s=>s.id===bm.ownerId);if(killer){killer.kills++;killer.score+=50;if(killer.isPlayer){GS.kills++;GS.score+=50;checkLevelUp(p);}}}
           checkWinCondition();
         }
@@ -1378,6 +1454,31 @@ function tickGame(now){
     if(bm.timer<=0){Particles.emitExplosion(bm.x,bm.y);return false;} // expired
     return true;
   });
+  // ── SAFES / TAKEOVER ────────────────────────────────────────────────────
+  if(gameMode==='takeover'&&GS.safes.length){
+    // Score trickle: players inside their OWN safe radius earn points
+    const allS=[p,...GS.bots];
+    for(const safe of GS.safes){
+      if(safe.hp<=0) continue;
+      for(const s of allS){
+        if(!s.alive) continue;
+        if(s.team===safe.team&&Math.hypot(s.x-safe.x,s.y-safe.y)<safe.radius){
+          s.score+=dt*1.5;
+          if(s.isPlayer) GS.score=Math.floor(p.score);
+        }
+      }
+    }
+    // Win check
+    const deadSafes=GS.safes.filter(s=>s.hp<=0);
+    if(deadSafes.length>0){
+      const destroyed=deadSafes[0];
+      const winner=destroyed.team===0?1:0; // enemy team wins
+      if(!GS.over){
+        if(p.team===winner) endGame(true,'ENEMY BASE DESTROYED');
+        else endGame(false,'YOUR BASE WAS DESTROYED');
+      }
+    }
+  }
   UI.updateBombHUD();
 
   Particles.tick(dt);
@@ -1385,91 +1486,183 @@ function tickGame(now){
 }
 
 // ─── AI TICK ─────────────────────────────────────────────────────────────────
+// AI decision model:
+//   - Normally bots mine asteroids (best pts-per-distance ratio)
+//   - When a player/enemy is within range, probability of attacking scales with closeness
+//   - Close (<400): 75% attack, 25% keep mining
+//   - Medium (400-800): 45% attack
+//   - Far (800-1500): 15% attack
+//   - Very far (>1500): ~3% — rare aggression burst from distance
+//   - Once a bot commits to attacking, it sticks to that target for several seconds
 function tickAI(bot,allShips,player,dt,nowSec){
   const ai=bot._ai;
-  if(bot.invuln>0)bot.invuln-=dt;
+  if(bot.invuln>0) bot.invuln-=dt;
   ai.stateTimer-=dt;
 
-  const fleeHp=bot.maxHp*0.20,fleeRecover=bot.maxHp*0.30;
-  if(bot.hp<=fleeHp&&ai.state!=='evade'){ai.state='evade';ai.fleeTimer=4+Math.random()*3;}
+  // ── FLEE CHECK ───────────────────────────────────────────────────────────
+  const fleeHp=bot.maxHp*0.20, fleeRecover=bot.maxHp*0.35;
+  if(bot.hp<=fleeHp && ai.state!=='evade'){
+    ai.state='evade';
+    ai.fleeTimer=3+Math.random()*3;
+    ai.combatTarget=null; // drop combat when fleeing
+  }
   if(ai.state==='evade'){
     ai.fleeTimer-=dt;
-    if(ai.fleeTimer<=0&&bot.hp>=fleeRecover){ai.state='patrol';ai.stateTimer=0;}
+    if(ai.fleeTimer<=0 && bot.hp>=fleeRecover){
+      ai.state='mine'; ai.stateTimer=0; ai.combatTarget=null;
+    }
   }
 
-  // Pick target: ships + asteroids
-  let target=null,targetAst=null;
-  const enemies=allShips.filter(s=>s.alive&&s.id!==bot.id&&areEnemies(bot,s));
+  // ── COMBAT TARGET STICKINESS TIMER ──────────────────────────────────────
+  // Once a bot picks a combat target it commits for combatLockTimer seconds
+  if(ai.combatLockTimer>0) ai.combatLockTimer-=dt;
+  if(ai.combatTarget && (!ai.combatTarget.alive || ai.combatLockTimer<=0)){
+    ai.combatTarget=null; ai.combatLockTimer=0;
+  }
+
+  // ── TARGET SELECTION ────────────────────────────────────────────────────
+  let combatTarget=ai.combatTarget;
+  let mineTarget=null;
+  let goFight=false;
+
   if(ai.state!=='evade'){
-    // Find nearest enemy ship
-    if(enemies.length){
-      enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
-      target=(player.alive&&Math.random()<CFG.PLAYER_FOCUS_WEIGHT)?player:enemies[0];
+    const enemies=allShips.filter(s=>s.alive && s.id!==bot.id && areEnemies(bot,s));
+
+    // If already locked onto a combat target, check whether to keep it
+    if(combatTarget && combatTarget.alive && ai.combatLockTimer>0){
+      goFight=true;
+    } else {
+      // Evaluate nearest enemy and decide whether to engage
+      if(enemies.length){
+        enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
+        const nearest=enemies[0];
+        const distToNearest=Math.hypot(nearest.x-bot.x, nearest.y-bot.y);
+
+        // Attack probability increases as enemy gets closer
+        let attackChance;
+        if(distToNearest < 400)       attackChance=0.75;
+        else if(distToNearest < 700)  attackChance=0.45;
+        else if(distToNearest < 1200) attackChance=0.15;
+        else if(distToNearest < 2000) attackChance=0.05;
+        else                          attackChance=0.02; // rare long-range aggression
+
+        // Re-roll decision only when stateTimer expired
+        if(ai.stateTimer<=0){
+          ai.stateTimer=1.5+Math.random()*2; // re-evaluate every 1.5-3.5s
+          if(Math.random()<attackChance){
+            // Pick target: slight bias towards player
+            combatTarget=(player.alive && Math.random()<0.45) ? player : nearest;
+            ai.combatTarget=combatTarget;
+            ai.combatLockTimer=4+Math.random()*4; // commit for 4-8s
+            goFight=true;
+          } else {
+            combatTarget=null; ai.combatTarget=null;
+          }
+        } else {
+          // Between re-evaluations keep previous decision
+          goFight=!!ai.combatTarget;
+          combatTarget=ai.combatTarget;
+        }
+      }
     }
-    // Find nearest asteroid if no nearby ship or as supplement
-    if(!target||Math.hypot(target.x-bot.x,target.y-bot.y)>800){
-      const nearAst=GS.asteroids.filter(a=>Math.hypot(a.x-bot.x,a.y-bot.y)<600);
-      if(nearAst.length&&Math.random()<0.5) targetAst=nearAst.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y))[0];
+
+    // ── ASTEROID MINING TARGET ─────────────────────────────────────────────
+    if(!goFight || !combatTarget){
+      // Find nearest asteroid worth mining — weight by pts/dist ratio
+      if(GS.asteroids.length){
+        let bestScore=-1, bestAst=null;
+        const check=Math.min(GS.asteroids.length, 20); // scan up to 20 rocks
+        for(let i=0;i<check;i++){
+          const a=GS.asteroids[i];
+          const d=Math.hypot(a.x-bot.x, a.y-bot.y);
+          const score=a.pts / (d+1);
+          if(score>bestScore){ bestScore=score; bestAst=a; }
+        }
+        mineTarget=bestAst;
+      }
     }
   }
 
-  const eff = targetAst&&!target ? targetAst : target;
-  const dx=eff?eff.x-bot.x:0;
-  const dy=eff?eff.y-bot.y:0;
-  const dist=eff?Math.hypot(dx,dy):Infinity;
-  const angleToTarget=eff?Math.atan2(dy,dx):bot.angle;
+  // ── RESOLVE EFFECTIVE TARGET ─────────────────────────────────────────────
+  const eff=goFight && combatTarget ? combatTarget : mineTarget;
+  const dx=eff ? eff.x-bot.x : 0;
+  const dy=eff ? eff.y-bot.y : 0;
+  const dist=eff ? Math.hypot(dx,dy) : Infinity;
+  const angleToTarget=eff ? Math.atan2(dy,dx) : bot.angle;
 
-  let wantThrust=false,wantShoot=false,targetAngle=bot.angle;
+  let wantThrust=false, wantShoot=false, targetAngle=bot.angle;
 
   if(ai.state==='evade'){
-    const nearestThreat=enemies.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y))[0];
-    const fleeAngle=nearestThreat?Math.atan2(bot.y-nearestThreat.y,bot.x-nearestThreat.x):bot.angle+Math.PI;
-    targetAngle=fleeAngle+(Math.random()-.5)*0.6;wantThrust=true;
+    const threats=allShips.filter(s=>s.alive&&s.id!==bot.id&&areEnemies(bot,s));
+    threats.sort((a,b)=>Math.hypot(a.x-bot.x,a.y-bot.y)-Math.hypot(b.x-bot.x,b.y-bot.y));
+    const t=threats[0];
+    const fleeAngle=t ? Math.atan2(bot.y-t.y, bot.x-t.x) : bot.angle+Math.PI;
+    targetAngle=fleeAngle+(Math.random()-.5)*0.5;
+    wantThrust=true;
+
   } else if(!eff){
-    ai.state='patrol';
-    if(ai.stateTimer<0){ai.patrolAngle+=((Math.random()-.5)*1.5);ai.stateTimer=2+Math.random()*3;}
-    targetAngle=ai.patrolAngle;wantThrust=Math.random()<0.6;
-  } else if(dist>500){
-    targetAngle=angleToTarget;wantThrust=true;
+    // Patrol — drift around
+    if(ai.stateTimer<=0){
+      ai.patrolAngle+=((Math.random()-.5)*1.8);
+      ai.stateTimer=2+Math.random()*3;
+    }
+    targetAngle=ai.patrolAngle; wantThrust=Math.random()<0.55;
+
+  } else if(goFight && combatTarget){
+    // Attack mode
+    targetAngle=angleToTarget; wantThrust=dist>180;
+    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.30) wantShoot=true;
+
   } else {
-    targetAngle=angleToTarget;wantThrust=dist>200;
-    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.35) wantShoot=true;
+    // Mining mode — approach and shoot at rock
+    targetAngle=angleToTarget; wantThrust=dist>120;
+    // Shoot at asteroid when aimed
+    if(Math.abs(angleDiff(bot.angle,angleToTarget))<0.28) wantShoot=true;
   }
 
-  const diff=angleDiff(bot.angle,targetAngle);
-  bot.angle+=Math.sign(diff)*Math.min(Math.abs(diff),Math.PI*3.5*dt);
+  // ── STEERING & MOVEMENT ──────────────────────────────────────────────────
+  const steerDiff=angleDiff(bot.angle, targetAngle);
+  bot.angle+=Math.sign(steerDiff)*Math.min(Math.abs(steerDiff), Math.PI*3.5*dt);
   bot.angle=((bot.angle+Math.PI)%(Math.PI*2))-Math.PI;
-  if(wantThrust){bot.vx+=Math.cos(bot.angle)*CFG.PLAYER_SPEED*dt*2;bot.vy+=Math.sin(bot.angle)*CFG.PLAYER_SPEED*dt*2;}
-  bot.vx*=0.97;bot.vy*=0.97;
-  const spd=Math.hypot(bot.vx,bot.vy);
-  if(spd>CFG.PLAYER_SPEED){bot.vx=bot.vx/spd*CFG.PLAYER_SPEED;bot.vy=bot.vy/spd*CFG.PLAYER_SPEED;}
 
-  const M=CFG.MAP_SIZE;
-  bot.x=((bot.x+bot.vx*dt)%M+M)%M;
-  bot.y=((bot.y+bot.vy*dt)%M+M)%M;
-
-  if(bot.shootCooldown>0) bot.shootCooldown-=dt;
-  if(wantShoot&&bot.shootCooldown<=0){
-    spawnBullets(bot);
-    const blv=LEVELS[Math.min(bot.level||0,LEVELS.length-1)];
-    bot.shootCooldown=blv.shootCd*(1+Math.random()*.4);
+  if(wantThrust){
+    bot.vx+=Math.cos(bot.angle)*CFG.PLAYER_SPEED*dt*2;
+    bot.vy+=Math.sin(bot.angle)*CFG.PLAYER_SPEED*dt*2;
   }
-  if(bot.hp<bot.maxHp&&(nowSec-bot.lastDamageTime)>=CFG.REGEN_DELAY)
-    bot.hp=Math.min(bot.maxHp,bot.hp+CFG.REGEN_RATE*dt);
+  bot.vx*=0.97; bot.vy*=0.97;
+  const spd=Math.hypot(bot.vx,bot.vy);
+  if(spd>CFG.PLAYER_SPEED){bot.vx=bot.vx/spd*CFG.PLAYER_SPEED; bot.vy=bot.vy/spd*CFG.PLAYER_SPEED;}
 
-  // Bots also level up
+  const M2=CFG.MAP_SIZE;
+  bot.x=((bot.x+bot.vx*dt)%M2+M2)%M2;
+  bot.y=((bot.y+bot.vy*dt)%M2+M2)%M2;
+
+  // ── SHOOTING ─────────────────────────────────────────────────────────────
+  if(bot.shootCooldown>0) bot.shootCooldown-=dt;
+  if(wantShoot && bot.shootCooldown<=0){
+    spawnBullets(bot);
+    const blv=LEVELS[Math.min(bot.level||0, LEVELS.length-1)];
+    bot.shootCooldown=blv.shootCd*(1+Math.random()*0.4);
+  }
+
+  // ── REGEN ────────────────────────────────────────────────────────────────
+  if(bot.hp<bot.maxHp && (nowSec-bot.lastDamageTime)>=CFG.REGEN_DELAY)
+    bot.hp=Math.min(bot.maxHp, bot.hp+CFG.REGEN_RATE*dt);
+
   checkLevelUp(bot);
 }
 
 // ─── WIN CONDITION ────────────────────────────────────────────────────────────
 function checkWinCondition(){
+  if(gameMode==='ffa') return; // FFA: no win/lose, infinite play
   if(GS.lives<=0&&!GS.player.alive){
     endGame(false,'ELIMINATED — OUT OF LIVES');
     return;
   }
   if(gameMode==='battleroyal'){
-    const aliveCount=GS.bots.filter(b=>b.alive).length+(GS.player.alive?1:0);
-    if(aliveCount<=1&&GS.player.alive) endGame(true,'LAST PILOT STANDING');
+    // Count bots with lives remaining
+    const aliveOrRespawnable=GS.bots.filter(b=>b.alive||(b.lives>0&&b._ai.respawnTimer<999999)).length;
+    if(aliveOrRespawnable===0&&GS.player.alive) endGame(true,'LAST PILOT STANDING');
   }
 }
 
@@ -1571,6 +1764,68 @@ const Render={
         ctx.fillText(Math.ceil(ast.hp)+'/'+ast.maxHp,0,fontSize*0.9);
       }
       ctx.restore();
+    }
+
+    // ── SAFE ZONES (TAKEOVER) ──────────────────────────────────────────────
+    for(const safe of GS.safes){
+      if(safe.hp<=0){
+        // Destroyed — show rubble
+        ctx.save();ctx.translate(safe.x,safe.y);
+        ctx.strokeStyle='rgba(255,80,0,0.4)';ctx.lineWidth=2;
+        ctx.setLineDash([6,10]);ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(255,50,0,0.06)';ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,100,0,0.6)';ctx.font='bold 16px Orbitron,sans-serif';
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('DESTROYED',0,0);
+        ctx.restore();
+        continue;
+      }
+      ctx.save();ctx.translate(safe.x,safe.y);
+      const isTeam0=safe.team===0;
+      const teamCol=isTeam0?'rgba(0,212,255,':'rgba(255,64,96,';
+      const hpRatio=safe.hp/safe.maxHp;
+      const pulse=0.5+0.5*Math.sin(Date.now()*0.003);
+
+      // Outer boundary ring (dashed)
+      ctx.strokeStyle=teamCol+(0.2+hpRatio*0.2)+')';ctx.lineWidth=1.5;
+      ctx.setLineDash([14,8]);ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+
+      // HP fill — fades as damaged
+      ctx.fillStyle=teamCol+(0.04+hpRatio*0.06)+')';ctx.beginPath();ctx.arc(0,0,safe.radius,0,Math.PI*2);ctx.fill();
+
+      // HP arc ring
+      ctx.strokeStyle=teamCol+'0.85)';ctx.lineWidth=5;
+      ctx.beginPath();ctx.arc(0,0,safe.radius-10,-Math.PI/2,-Math.PI/2+hpRatio*Math.PI*2);ctx.stroke();
+      // Depleted portion darker
+      if(hpRatio<1){
+        ctx.strokeStyle=teamCol+'0.15)';ctx.lineWidth=5;
+        ctx.beginPath();ctx.arc(0,0,safe.radius-10,-Math.PI/2+hpRatio*Math.PI*2,-Math.PI/2+Math.PI*2);ctx.stroke();
+      }
+
+      // Center structure — hexagonal base
+      ctx.shadowColor=teamCol+'0.9)';ctx.shadowBlur=14+pulse*8;
+      ctx.strokeStyle=teamCol+(0.7+pulse*0.25)+')';ctx.lineWidth=2;
+      ctx.beginPath();
+      for(let vi=0;vi<6;vi++){const va=(vi/6)*Math.PI*2;const vr=28*(0.9+pulse*0.08);const nx2=Math.cos(va)*vr,ny2=Math.sin(va)*vr;vi===0?ctx.moveTo(nx2,ny2):ctx.lineTo(nx2,ny2);}
+      ctx.closePath();ctx.stroke();
+      ctx.fillStyle=teamCol+'0.12)';ctx.fill();
+
+      // Core glow
+      const cg=ctx.createRadialGradient(0,0,0,0,0,18);
+      cg.addColorStop(0,teamCol+'0.9)');cg.addColorStop(0.5,teamCol+'0.35)');cg.addColorStop(1,'transparent');
+      ctx.beginPath();ctx.arc(0,0,18,0,Math.PI*2);ctx.fillStyle=cg;ctx.fill();
+      ctx.shadowBlur=0;
+
+      // Team label
+      ctx.fillStyle=teamCol+'0.95)';ctx.font='bold 11px Orbitron,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(isTeam0?'TEAM A':'TEAM B',0,0);
+
+      // HP text below
+      ctx.font='10px Share Tech Mono';ctx.fillStyle='rgba(255,255,255,0.75)';
+      ctx.fillText(Math.ceil(safe.hp)+' HP',0,38);
+
+      ctx.shadowBlur=0;ctx.restore();
     }
 
     // ── AMMO PICKUPS ───────────────────────────────────────────────────
@@ -1782,9 +2037,10 @@ const UI={
     document.getElementById('rs-score').textContent=GS.score;
     const livesLeft=GS.lives;
     const lrEl=document.getElementById('lives-remaining');
-    if(livesLeft>0) lrEl.textContent=`${livesLeft} LIFE${livesLeft>1?'S':''} REMAINING`;
+    if(gameMode==='ffa') lrEl.textContent='∞ LIVES — SCORE RESET TO 0';
+    else if(livesLeft>0) lrEl.textContent=`${livesLeft} LIFE${livesLeft>1?'S':''} REMAINING`;
     else lrEl.textContent='NO LIVES REMAINING';
-    document.getElementById('respawn-btn').style.display=livesLeft>0?'':'none';
+    document.getElementById('respawn-btn').style.display=(livesLeft>0||gameMode==='ffa')?'':'none';
     document.getElementById('killed-by-text').innerHTML='your ship was destroyed';
   },
   showRespawnScreen(){document.getElementById('respawn-screen').classList.remove('hidden');},
@@ -1867,9 +2123,8 @@ const EscMenu={
   quit(){
     this.close();gameRunning=false;GS.over=false;
     GS.player=null;GS.bots=[];GS.bullets=[];GS.asteroids=[];GS.ammoPickups=[];
-    GS.score=0;GS.kills=0;GS.deaths=0;GS.lives=CFG.MAX_LIVES;GS.borderCrossTimer=0;
-    Particles.pool=[];usedNames.clear();deathLingerTimer=0;lastPlayerShoot=false;
-    ['game-screen','hud','respawn-screen','end-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+    GS.score=0;GS.kills=0;GS.deaths=0;GS.lives=(gameMode==='ffa')?99:CFG.MAX_LIVES;GS.borderCrossTimer=0;
+    Particles.pool=[];usedNames.clear();deathLingerTimer=0;    ['game-screen','hud','respawn-screen','end-screen'].forEach(id=>document.getElementById(id).classList.add('hidden'));
     document.getElementById('omega-picker').style.display='none';
     ['enter-screen'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
     document.getElementById('credit').classList.remove('hidden');
@@ -1897,6 +2152,20 @@ function runConnectionSequence(onDone){
   document.getElementById('conn-mode-label').textContent=CONN_MODE_LABELS[gameMode]||'SECTOR';
   document.getElementById('conn-log').innerHTML='';
   document.getElementById('conn-bar').style.width='0%';
+  // Show controls tip
+  const tipEl=document.getElementById('conn-tip');
+  if(tipEl){
+    const B=id=>Binds.label(Binds.map[id])||id;
+    const bombKey=B('bomb');
+    tipEl.innerHTML=
+      `<span style="color:rgba(0,212,255,0.7)">TIP:</span> &nbsp;`+
+      `<span style="color:rgba(0,212,255,0.85)">${B('boost')}</span> boost &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('thrust')}/${B('sideLeft')}/${B('brake')}</span> move &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('shoot')}/LMB</span> shoot<br>`+
+      `<span style="color:rgba(0,212,255,0.85)">${bombKey}</span> drop bomb &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">${B('boost')}</span> hold for boost &nbsp;·&nbsp; `+
+      `<span style="color:rgba(0,212,255,0.85)">RMB</span> also thrusts`;
+  }
   let step=0;
   const totalSteps=CONN_MESSAGES.length;
   function nextStep(){
@@ -1941,7 +2210,7 @@ function buildSettingsUI(){
 }
 function updateControlsHint(){
   const B=id=>Binds.label(Binds.map[id]);
-  document.getElementById('controls-hint-display').innerHTML=`<span>${B('thrust')}</span> thrust &nbsp;·&nbsp; <span>${B('brake')}</span> brake &nbsp;·&nbsp; <span>${B('sideLeft')}/${B('sideRight')}</span> strafe &nbsp;·&nbsp; <span>${B('rotLeft')}/${B('rotRight')}</span> rotate<br><span>${B('shoot')}/LMB</span> shoot &nbsp;·&nbsp; <span>RMB</span> thrust &nbsp;·&nbsp; <span>${B('boost')}</span> boost &nbsp;·&nbsp; <span>R</span> bomb`;
+  document.getElementById('controls-hint-display').innerHTML=`<span>${B('thrust')}</span> thrust &nbsp;·&nbsp; <span>${B('brake')}</span> brake &nbsp;·&nbsp; <span>${B('sideLeft')}/${B('sideRight')}</span> strafe &nbsp;·&nbsp; <span>${B('rotLeft')}/${B('rotRight')}</span> rotate<br><span>${B('shoot')}/LMB</span> shoot &nbsp;·&nbsp; <span>RMB</span> thrust &nbsp;·&nbsp; <span>${B('boost')}</span> boost &nbsp;·&nbsp; <span>${B('bomb')}</span> bomb`;
 }
 
 // ─── MAIN LOOP ────────────────────────────────────────────────────────────────
@@ -1951,63 +2220,7 @@ function mainLoop(now){
     if(gameRunning&&!GS.over) tickGame(now);
     if(GS.player) Render.draw(now);
   }catch(e){console.error('Game loop error:',e);}
-  
-// ─── DEV PIN ─────────────────────────────────────────────────────────────────
-document.getElementById('dev-pin-btn').addEventListener('click',()=>{
-  const val=document.getElementById('dev-pin-input').value;
-  const st=document.getElementById('dev-pin-status');
-  if(val==='sussyballz123'){
-    devMode=true;
-    st.textContent='GRANTED';st.style.color='#00ff88';
-    document.getElementById('dev-pin-panel').style.borderColor='rgba(0,255,136,0.35)';
-    document.getElementById('dev-pin-panel').style.background='rgba(0,255,136,0.04)';
-  } else {
-    st.textContent='DENIED';st.style.color='#ff4060';
-    setTimeout(()=>{st.textContent='';},2000);
-  }
-  document.getElementById('dev-pin-input').value='';
-});
-document.getElementById('dev-pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('dev-pin-btn').click();});
-
-
-// ─── OMEGA PICKER HANDLERS ───────────────────────────────────────────────────
-document.getElementById('pick-alpha').addEventListener('click',()=>{
-  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,8);
-});
-document.getElementById('pick-beta').addEventListener('click',()=>{
-  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,9);
-});
-
-// Draw omega preview canvases (static previews)
-(function drawPreviews(){
-  function drawPreview(canvasId,level){
-    const cv=document.getElementById(canvasId);if(!cv)return;
-    const ctx=cv.getContext('2d');const S=cv.width,H=cv.height;
-    ctx.clearRect(0,0,S,H);
-    const skin={fill:'rgba(180,60,255,0.18)',body:'#cc00ff',cockpit:'rgba(220,160,255,0.55)'};
-    ctx.translate(S/2,H/2);
-    drawShipDesign(ctx,level,skin,18,0,performance.now()/1000);
-    // Re-draw periodically for animation
-  }
-  drawPreview('omega-alpha-preview',8);
-  drawPreview('omega-beta-preview',9);
-  // Animate previews
-  function animPreviews(){
-    ['omega-alpha-preview','omega-beta-preview'].forEach((id,i)=>{
-      const cv=document.getElementById(id);if(!cv)return;
-      const ctx=cv.getContext('2d');const S=cv.width,H=cv.height;
-      ctx.save();ctx.clearRect(0,0,S,H);
-      const skin={fill:'rgba(180,60,255,0.18)',body:'#cc00ff',cockpit:'rgba(220,160,255,0.55)'};
-      ctx.translate(S/2,H/2);
-      drawShipDesign(ctx,8+i,skin,18,0,performance.now()/1000);
-      ctx.restore();
-    });
-    requestAnimationFrame(animPreviews);
-  }
-  animPreviews();
-})();
-
-requestAnimationFrame(mainLoop);
+  requestAnimationFrame(mainLoop);
 }
 
 // ─── BOOT ─────────────────────────────────────────────────────────────────────
@@ -2034,25 +2247,33 @@ document.getElementById('launch-btn').addEventListener('click',()=>{
   // Set map size
   CFG.MAP_SIZE=MAP_SIZES[gameMode]||10000;
 
-  // Assign teams if teams mode
+  // Assign teams for team-based modes
   let playerTeam=-1;
-  if(gameMode==='teams') playerTeam=0;
+  if(gameMode==='teams'||gameMode==='takeover') playerTeam=0;
 
   runConnectionSequence(()=>{
     usedNames.clear();GS.over=false;GS.score=0;GS.kills=0;GS.deaths=0;
-    GS.lives=CFG.MAX_LIVES;GS.borderCrossTimer=0;
-    GS.bullets=[];GS.ammoPickups=[];GS.asteroids=[];GS.bombs=[];playerBombCd=0;
-    GS.worldStars=[];
-    Particles.pool=[];deathLingerTimer=0;lastPlayerShoot=false;
-
+    GS.lives=(gameMode==='ffa')?99:CFG.MAX_LIVES;GS.borderCrossTimer=0;
+    GS.bullets=[];GS.ammoPickups=[];GS.asteroids=[];GS.bombs=[];GS.safes=[];playerBombCd=0;
+    GS.worldStars=[];GS.safes=[];
+    Particles.pool=[];deathLingerTimer=0;
     spawnAmmoPickups();
     spawnAsteroids();
     spawnWorldStars();
 
+    // Spawn safe bases for takeover
+    if(gameMode==='takeover'){
+      const M=CFG.MAP_SIZE;
+      GS.safes=[
+        {team:0,x:M*0.15,y:M*0.5,radius:110,hp:4000,maxHp:4000},
+        {team:1,x:M*0.85,y:M*0.5,radius:110,hp:4000,maxHp:4000},
+      ];
+    }
+
     GS.player=createPlayer(username,playerTeam);
     GS.bots=Array.from({length:botCount},(_,i)=>{
       let team=-1;
-      if(gameMode==='teams') team=i%2===0?1:0; // alternate teams
+      if(gameMode==='teams'||gameMode==='takeover') team=i%2===0?1:0;
       return createBot(team);
     });
 
@@ -2076,28 +2297,52 @@ document.getElementById('respawn-btn').addEventListener('click',()=>{
   p.hp=p.maxHp;p.alive=true;p.invuln=CFG.RESPAWN_INVULN;
   p.ammo=CFG.AMMO_MAX;p.boostFuel=CFG.BOOST_MAX;p.boostRechargeTimer=0;
   p.lastDamageTime=-999;GS.borderCrossTimer=0;
-  deathLingerTimer=0;gameRunning=true;lastPlayerShoot=false;
-  document.getElementById('respawn-screen').classList.add('hidden');
+  deathLingerTimer=0;gameRunning=true;  document.getElementById('respawn-screen').classList.add('hidden');
 });
 document.getElementById('respawn-quit-btn').addEventListener('click',()=>EscMenu.quit());
 
 
 // ─── DEV PIN ─────────────────────────────────────────────────────────────────
-document.getElementById('dev-pin-btn').addEventListener('click',()=>{
-  const val=document.getElementById('dev-pin-input').value;
+(function(){
+  const btn=document.getElementById('dev-pin-btn');
+  const inp=document.getElementById('dev-pin-input');
   const st=document.getElementById('dev-pin-status');
-  if(val==='sussyballz123'){
-    devMode=true;
-    st.textContent='GRANTED';st.style.color='#00ff88';
-    document.getElementById('dev-pin-panel').style.borderColor='rgba(0,255,136,0.35)';
-    document.getElementById('dev-pin-panel').style.background='rgba(0,255,136,0.04)';
-  } else {
-    st.textContent='DENIED';st.style.color='#ff4060';
-    setTimeout(()=>{st.textContent='';},2000);
+  if(!btn||!inp) return;
+  function tryPin(){
+    if(inp.value==='sussyballz123'){
+      devMode=true;
+      st.textContent='GRANTED';st.style.color='#00ff88';
+      document.getElementById('dev-pin-panel').style.borderColor='rgba(0,255,136,0.35)';
+      document.getElementById('dev-pin-panel').style.background='rgba(0,255,136,0.04)';
+    } else {
+      st.textContent='DENIED';st.style.color='#ff4060';
+      setTimeout(()=>{st.textContent='';},2000);
+    }
+    inp.value='';
   }
-  document.getElementById('dev-pin-input').value='';
+  btn.addEventListener('click',tryPin);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')tryPin();});
+})();
+
+// ─── OMEGA PICKER ────────────────────────────────────────────────────────────
+document.getElementById('pick-alpha').addEventListener('click',()=>{
+  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,8);
 });
-document.getElementById('dev-pin-input').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('dev-pin-btn').click();});
+document.getElementById('pick-beta').addEventListener('click',()=>{
+  if(GS.player&&GS.player._pendingOmega) selectOmega(GS.player,9);
+});
+(function animPreviews(){
+  ['omega-alpha-preview','omega-beta-preview'].forEach((id,i)=>{
+    const cv=document.getElementById(id);if(!cv)return;
+    const ctx2=cv.getContext('2d');
+    ctx2.save();ctx2.clearRect(0,0,cv.width,cv.height);
+    const skin={fill:'rgba(180,60,255,0.18)',body:'#cc00ff',cockpit:'rgba(220,160,255,0.55)'};
+    ctx2.translate(cv.width/2,cv.height/2);
+    drawShipDesign(ctx2,8+i,skin,18,0,performance.now()/1000);
+    ctx2.restore();
+  });
+  requestAnimationFrame(animPreviews);
+})();
 
 requestAnimationFrame(mainLoop);
 </script>
