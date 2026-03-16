@@ -22,7 +22,6 @@
     border-radius: 6px;
     transition: color 0.3s ease;
 }
-
 #grannyBtn::before {
     content: "";
     position: absolute;
@@ -32,33 +31,30 @@
     transition: width 0.35s ease;
     z-index: 0;
 }
-
 #grannyBtn span {
     position: relative;
     z-index: 1;
 }
-
-#grannyBtn:hover {
-    color: #ffffff;
-}
-
-#grannyBtn:hover::before {
-    width: 100%;
-}
+#grannyBtn:hover { color: #ffffff; }
+#grannyBtn:hover::before { width: 100%; }
 </style>
 
 <script>
   function openGranny() {
     const win = window.open("about:blank", "_blank");
+    if (!win) {
+      alert("Popup was blocked! Please allow popups for this page.");
+      return;
+    }
     const doc = win.document;
-    doc.open();
-    doc.write(`<!DOCTYPE html>
+
+    // Build the inner page as a string — ALL </script> tags must be escaped as <\/script>
+    const inner = `<!DOCTYPE html>
 <html lang="en-us">
 <head>
     <title>Granny Original</title>
     <meta charset="utf-8">
     <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/bubbls/granny@212c543a85b243c4a0b92211f557e760d83d2292/TemplateData/style.css">
     <script src="https://cdn.jsdelivr.net/gh/bubbls/granny@212c543a85b243c4a0b92211f557e760d83d2292/sdk.js"><\/script>
     <script type="text/javascript">
@@ -91,99 +87,47 @@
         #unity-progress-bar-empty { width: 100%; height: 100%; position: relative; }
         #unity-progress-bar-full { position: absolute; top: 0; left: 0; width: 0%; height: 100%; background: #4caf50; border-radius: 8px; transition: width 0.3s ease; }
         #unity-warning { position: absolute; left: 50%; top: 5%; transform: translate(-50%); background: white; padding: 10px; display: none; border: 1px solid #ccc; border-radius: 5px; }
-
-        /* ── Ad Banner ── */
         #ad-banner-wrap {
-            position: fixed;
-            left: 0;
-            top: 50%;
+            position: fixed; left: 0; top: 50%;
             transform: translateY(-50%) translateX(-100%);
             width: min(250px, calc(100vw - 24px));
-            max-height: 600px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
+            max-height: 600px; z-index: 9999;
+            display: flex; flex-direction: row; align-items: flex-start;
             pointer-events: none;
             transition: transform 0.42s cubic-bezier(0.34, 1.18, 0.64, 1);
         }
-        #ad-banner-wrap.open {
-            transform: translateY(-50%) translateX(0%);
-            pointer-events: all;
-        }
+        #ad-banner-wrap.open { transform: translateY(-50%) translateX(0%); pointer-events: all; }
         #ad-banner-box {
-            width: 100%;
-            max-height: 600px;
-            min-height: 250px;
-            background: #111;
-            border: 1px solid #2b2b2b;
+            width: 100%; max-height: 600px; min-height: 250px;
+            background: #111; border: 1px solid #2b2b2b;
             border-radius: 0 10px 10px 0;
             box-shadow: 6px 0 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03) inset;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            flex-direction: column;
+            overflow: hidden; display: flex; align-items: center;
+            justify-content: center; position: relative; flex-direction: column;
         }
         #ad-banner-box::before {
-            content: '';
-            position: absolute;
-            inset: 0;
+            content: ''; position: absolute; inset: 0;
             background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.012) 2px, rgba(255,255,255,0.012) 4px);
-            pointer-events: none;
-            z-index: 1;
+            pointer-events: none; z-index: 1;
         }
         #ad-close-btn {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #1a1a1a;
-            color: #c8c8c8;
-            border: 1px solid #333;
-            border-radius: 6px;
+            position: absolute; top: 8px; right: 8px;
+            display: flex; align-items: center; gap: 5px;
+            background: #1a1a1a; color: #c8c8c8;
+            border: 1px solid #333; border-radius: 6px;
             padding: 4px 10px;
             font-family: 'DM Mono', 'Courier New', monospace;
-            font-size: 11px;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            cursor: pointer;
-            line-height: 1;
+            font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+            cursor: pointer; line-height: 1;
             transition: background 0.18s, color 0.18s;
-            user-select: none;
-            z-index: 4;
+            user-select: none; z-index: 4;
         }
         #ad-close-btn:hover { background: #2e2e2e; color: #fff; }
-        #ad-slot {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #ad-timer-bar {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #444, #666);
-            width: 100%;
-            transform-origin: left center;
-            z-index: 3;
-        }
-        #ad-timer-bar.ticking {
-            animation: drain 300s linear forwards;
-        }
+        #ad-slot { position: relative; z-index: 2; width: 100%; height: 100%; min-height: 250px; display: flex; align-items: center; justify-content: center; }
+        #ad-timer-bar { position: absolute; bottom: 0; left: 0; height: 2px; background: linear-gradient(90deg, #444, #666); width: 100%; transform-origin: left center; z-index: 3; }
+        #ad-timer-bar.ticking { animation: drain 300s linear forwards; }
         @keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-        #ad-banner-wrap.open #ad-banner-box {
-            animation: pop-in 0.42s cubic-bezier(0.34, 1.18, 0.64, 1) both;
-        }
+        #ad-banner-wrap.open #ad-banner-box { animation: pop-in 0.42s cubic-bezier(0.34, 1.18, 0.64, 1) both; }
         @keyframes pop-in {
             0%   { box-shadow: 6px 0 40px rgba(0,0,0,0.55); }
             40%  { box-shadow: 10px 0 60px rgba(0,0,0,0.7); }
@@ -203,19 +147,12 @@
         <div id="unity-warning"></div>
     </div>
 
-    <!-- Ad Banner -->
     <div id="ad-banner-wrap">
         <div id="ad-banner-box">
             <button id="ad-close-btn" aria-label="Close advertisement">
-                <span>✕</span>
-                <span>close</span>
+                <span>✕</span><span>close</span>
             </button>
-            <!-- ▼▼▼ PASTE YOUR AD CODE HERE ▼▼▼ -->
-            <div id="ad-slot">
-<script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
-<div id="container-8f96b67638e5d64529051d047142d046"></div>
-</div>
-            <!-- ▲▲▲ END OF AD SLOT ▲▲▲ -->
+            <div id="ad-slot"></div>
             <div id="ad-timer-bar"></div>
         </div>
     </div>
@@ -223,7 +160,7 @@
     <script>
         // ── Ad Banner Logic ──
         (() => {
-            const INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+            const INTERVAL_MS = 5 * 60 * 1000;
             const wrap     = document.getElementById('ad-banner-wrap');
             const closeBtn = document.getElementById('ad-close-btn');
             const timerBar = document.getElementById('ad-timer-bar');
@@ -240,6 +177,19 @@
             }
 
             closeBtn.addEventListener('click', closeBanner);
+
+            // Load ad script dynamically — avoids </script> tag breaking the outer template literal
+            const adScript = document.createElement('script');
+            adScript.async = true;
+            adScript.setAttribute('data-cfasync', 'false');
+            adScript.src = 'https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js';
+            adScript.onload = () => {
+                const adDiv = document.createElement('div');
+                adDiv.id = 'container-8f96b67638e5d64529051d047142d046';
+                document.getElementById('ad-slot').appendChild(adDiv);
+            };
+            document.getElementById('ad-slot').appendChild(adScript);
+
             openBanner();
             setInterval(openBanner, INTERVAL_MS);
         })();
@@ -265,11 +215,11 @@
             return combined;
         }
 
-        var canvas        = document.querySelector("#unity-canvas");
-        var loadingBar    = document.querySelector("#unity-loading-bar");
+        var canvas          = document.querySelector("#unity-canvas");
+        var loadingBar      = document.querySelector("#unity-loading-bar");
         var progressBarFull = document.querySelector("#unity-progress-bar-full");
-        var warningBanner = document.querySelector("#unity-warning");
-        let myGameInstance = null;
+        var warningBanner   = document.querySelector("#unity-warning");
+        let myGameInstance  = null;
 
         function unityShowBanner(msg, type) {
             var div = document.createElement('div');
@@ -323,7 +273,10 @@
         initializeGame();
     <\/script>
 </body>
-</html>`);
+</html>`;
+
+    doc.open();
+    doc.write(inner);
     doc.close();
   }
 </script>
