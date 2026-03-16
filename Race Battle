@@ -356,5 +356,47 @@
     }
   })();
 </script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+    }
+
+    .ad-sidebar {
+      position: fixed;
+      top: 50%;
+      width: 300px;
+      height: 700px;
+      background: #000;
+      transform: translateY(-50%);
+      z-index: 999;
+    }
+
+    .ad-sidebar.left {
+      left: 0;
+    }
+
+    .ad-sidebar.right {
+      right: 0;
+    }
+  </style>
+
+
+
+  <div class="ad-sidebar left">
+    <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
+<div id="container-8f96b67638e5d64529051d047142d046"></div>
+  </div>
+
+  <div class="ad-sidebar right">
+  <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/6ea0f4d42f1fb25bd1262e8e90a9df58/invoke.js"></script>
+<div id="container-6ea0f4d42f1fb25bd1262e8e90a9df58"></div>
+  </div>
+
+  <!-- Your main page content goes here -->
+
+
+
 </body>
 </html>
