@@ -216,7 +216,16 @@
   doc.close();
 };
 </script>
-<script src="https://glamourpicklessteward.com/c4/8c/1d/c48c1dab49f255bcc35642706dad25ca.js"></script>
+<script>
+  atOptions = {
+    'key' : '50a13ab64b1be08cbe337802d1ee7aa0',
+    'format' : 'iframe',
+    'height' : 60,
+    'width' : 468,
+    'params' : {}
+  };
+</script>
+<script src="https://glamourpicklessteward.com/50a13ab64b1be08cbe337802d1ee7aa0/invoke.js"></script>
 </body>
 </html>
 <style>
