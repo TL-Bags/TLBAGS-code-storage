@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snow Rider – Unblocked</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+
+    #wrapper {
+      position: relative;
+      width: min(960px, 100vw);
+    }
+
+    #aspect-box {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%;
+      background: #111;
+      border: 2px solid #4a148c;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    #game-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+    }
+
+    #play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 48px;
+      background: #000;
+      color: #fff;
+      border: 2px solid #4a148c;
+      border-radius: 10px;
+      font-size: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      z-index: 10;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    #play-btn:hover { background: #4a148c; }
+
+    #spinner {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 9;
+      background: #111;
+    }
+    #spinner.active { display: flex; }
+
+    .spin-ring {
+      width: 52px;
+      height: 52px;
+      border: 4px solid #222;
+      border-top-color: #9c27b0;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-label { font-size: 14px; color: #aaa; }
+
+    #progress-wrap {
+      width: 200px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.1);
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4a148c, #9c27b0);
+      border-radius: 2px;
+      transition: width 0.2s;
+    }
+
+    #toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 8px 4px;
+      gap: 8px;
+    }
+
+    .tb-btn {
+      padding: 8px 18px;
+      background: #000;
+      color: #fff;
+      border: 1.5px solid #4a148c;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.18s;
+      letter-spacing: 0.04em;
+    }
+    .tb-btn:hover { background: #4a148c; }
+
+    #cache-status {
+      font-size: 12px;
+      color: #777;
+      flex: 1;
+      text-align: right;
+      padding-right: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="wrapper">
+  <div id="aspect-box">
+    <iframe id="game-frame"
+      sandbox="allow-scripts allow-popups allow-forms allow-same-origin allow-popups-to-escape-sandbox allow-downloads allow-modals allow-storage-access-by-user-activation"
+      allowfullscreen>
+    </iframe>
+
+    <div id="spinner">
+      <div class="spin-ring"></div>
+      <div class="spin-label" id="spin-label">Loading game…</div>
+      <div id="progress-wrap">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+
+    <button id="play-btn" onclick="startGame()">▶ CLICK TO PLAY</button>
+  </div>
+
+  <div id="toolbar">
+    <button class="tb-btn" onclick="openFullscreen()">⛶ Fullscreen</button>
+    <button class="tb-btn" onclick="clearCache()">🗑 Clear Cache</button>
+    <span id="cache-status">Not loaded</span>
+  </div>
+</div>
+
+<script>
+  const GAME_URL  = 'https://cdn.jsdelivr.net/gh/kelsimsk/ugil@main/2.xml';
+  const DB_NAME   = 'GameCacheDB';
+  const STORE     = 'GameFiles';
+  const CACHE_TTL = 90 * 24 * 60 * 60 * 1000;
+
+  function openDB() {
+    return new Promise((res, rej) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'url' });
+      req.onsuccess = e => res(e.target.result);
+      req.onerror   = e => rej(e.target.error);
+    });
+  }
+
+  async function saveToCache(url, content) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx  = db.transaction(STORE, 'readwrite');
+      const req = tx.objectStore(STORE).put({ url, content, timestamp: Date.now() });
+      req.onsuccess = () => res();
+      req.onerror   = () => rej(new Error('Cache write failed'));
+    });
+  }
+
+  async function loadFromCache(url) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx  = db.transaction(STORE, 'readonly');
+      const req = tx.objectStore(STORE).get(url);
+      req.onsuccess = e => {
+        const d = e.target.result;
+        if (d && (Date.now() - d.timestamp) < CACHE_TTL) res({ hit: true,  content: d.content });
+        else                                               res({ hit: false, content: null });
+      };
+      req.onerror = () => rej(new Error('Cache read failed'));
+    });
+  }
+
+  async function clearCache() {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const tx  = db.transaction(STORE, 'readwrite');
+      const req = tx.objectStore(STORE).delete(GAME_URL);
+      req.onsuccess = () => { setStatus('Cache cleared'); res(); };
+      req.onerror   = () => rej();
+    });
+  }
+
+  async function fetchWithProgress(url, onProgress) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const total  = +response.headers.get('Content-Length') || 0;
+    const reader = response.body.getReader();
+    const chunks = [];
+    let received  = 0;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (total) onProgress(received / total);
+    }
+
+    const all = new Uint8Array(received);
+    let pos = 0;
+    for (const c of chunks) { all.set(c, pos); pos += c.length; }
+    return new TextDecoder().decode(all);
+  }
+
+  function setStatus(msg)    { document.getElementById('cache-status').textContent = msg; }
+  function setSpinLabel(msg) { document.getElementById('spin-label').textContent = msg; }
+  function setProgress(pct)  { document.getElementById('progress-bar').style.width = (pct * 100).toFixed(1) + '%'; }
+  function showSpinner(show) { document.getElementById('spinner').classList.toggle('active', show); }
+
+  window.addEventListener('message', ev => {
+    const msg = ev.data;
+    if (!msg || !msg.type) return;
+    if (msg.type === 'UNITY_SAVE') {
+      try { localStorage.setItem('unity_save_' + msg.key, msg.data); } catch(_) {}
+      try { ev.source.postMessage({ type: 'UNITY_SAVE_ACK', key: msg.key }, ev.origin); } catch(_) {}
+    }
+    if (msg.type === 'UNITY_LOAD_REQ') {
+      const data = localStorage.getItem('unity_save_' + msg.key);
+      try { ev.source.postMessage({ type: 'UNITY_LOAD_RESP', key: msg.key, data }, ev.origin); } catch(_) {}
+    }
+  });
+
+  async function getGameHTML() {
+    let cached;
+    try { cached = await loadFromCache(GAME_URL); } catch(_) { cached = { hit: false }; }
+
+    if (cached.hit) {
+      setStatus('Loaded from cache ✓');
+      return cached.content;
+    }
+
+    setSpinLabel('Downloading game…');
+    setProgress(0);
+
+    const html = await fetchWithProgress(GAME_URL, p => {
+      setProgress(p);
+      setSpinLabel(`Downloading… ${(p * 100).toFixed(0)}%`);
+    });
+
+    setProgress(1);
+    setSpinLabel('Caching…');
+    try { await saveToCache(GAME_URL, html); } catch(_) {}
+    setStatus('Downloaded & cached ✓');
+    return html;
+  }
+
+  function writeToFrame(frame, html) {
+    frame.style.display = 'block';
+    const doc = frame.contentDocument || frame.contentWindow.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+  }
+
+  async function startGame() {
+    const btn = document.getElementById('play-btn');
+    btn.style.display = 'none';
+    showSpinner(true);
+    setSpinLabel('Checking cache…');
+
+    try {
+      const html  = await getGameHTML();
+      const frame = document.getElementById('game-frame');
+      showSpinner(false);
+      writeToFrame(frame, html);
+    } catch (err) {
+      showSpinner(false);
+      btn.style.display = '';
+      setStatus('Error: ' + err.message);
+      console.error(err);
+    }
+  }
+
+  async function openFullscreen() {
+    const win = window.open('', '_blank');
+    if (!win) { alert('Popup blocked — allow popups for this page.'); return; }
+
+    win.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh"><p style="color:#fff;font-family:Arial">Loading…</p></body></html>');
+
+    try {
+      const html = await getGameHTML();
+      win.document.open();
+      win.document.write(html);
+      win.document.close();
+    } catch (err) {
+      win.close();
+      alert('Failed to load: ' + err.message);
+    }
+  }
+
+  (async () => {
+    try {
+      const c = await loadFromCache(GAME_URL);
+      setStatus(c.hit ? 'Cached & ready ✓' : 'Not cached yet');
+    } catch(_) {
+      setStatus('IndexedDB unavailable');
+    }
+  })();
+</script>
+
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+    }
+
+    .ad-sidebar {
+      position: fixed;
+      top: 50%;
+      width: 200px;
+      height: 600px;
+      background: #000;
+      transform: translateY(-50%);
+      z-index: 999;
+    }
+
+    .ad-sidebar.left {
+      left: 0;
+    }
+
+    .ad-sidebar.right {
+      right: 0;
+    }
+  </style>
+
+
+  <div class="ad-sidebar left">
+    <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/6ea0f4d42f1fb25bd1262e8e90a9df58/invoke.js"></script>
+<div id="container-6ea0f4d42f1fb25bd1262e8e90a9df58"></div>
+  </div>
+
+  <div class="ad-sidebar right">
+    <script async="async" data-cfasync="false" src="https://glamourpicklessteward.com/8f96b67638e5d64529051d047142d046/invoke.js"></script>
+<div id="container-8f96b67638e5d64529051d047142d046"></div>
+  </div>
+
+  <!-- Your main page content goes here -->
+
+
+
+</body>
+</html>
